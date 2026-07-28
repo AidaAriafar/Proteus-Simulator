@@ -1,0 +1,35 @@
+ریزرپروژه ۸ — کنترل شبیه‌سازی با SDL2
+
+فایل‌ها:
+1) Project8.cpp
+2) CMakeLists.txt
+
+امکانات:
+- Run، Pause، Stop
+- حفظ کامل وضعیت و رخدادهای آینده در Pause
+- صفر شدن زمان و حذف رخدادها در Stop
+- رنگ زنده سیم‌ها: High قرمز، Low آبی، Undefined زرد
+- بازگشت رنگ سیم‌ها به خاکستری در Stop
+- تعامل زنده با Toggle، Push Button و Potentiometer
+- تأخیر انتشار گیت AND و ADC سه‌بیتی با صف رخداد
+- Step با گام 0.10 ثانیه
+- Next Event برای رفتن دقیق تا رخداد منطقی بعدی
+- کلاک یک هرتز برای آزمایش اجرای پیوسته و گام‌به‌گام
+
+روش قرار دادن در CLion:
+- یک پوشه جدید بسازید.
+- فایل کد را با نام Project8.cpp داخل آن قرار دهید.
+- فایل CMakeLists_Project8.txt را با نام CMakeLists.txt داخل همان پوشه قرار دهید.
+- پوشه را از File > Open در CLion باز کنید.
+- Toolchain را روی MSYS2-UCRT64 بگذارید.
+- Reset Cache and Reload Project را اجرا کنید.
+- Target را روی Project8 بگذارید و Run کنید.
+
+کلیدها:
+Space: Run/Pause
+R: Stop
+S: Fixed Step
+N: Next Event
+T: Toggle Switch
+P: Push Button (تا وقتی کلید نگه داشته شده)
+Left/Right: تغییر پتانسیومتر
