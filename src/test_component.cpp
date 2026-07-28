@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "components/LED.h"
 #include "components/Resistor.h"
 #include "editor/ComponentManager.h"
 
@@ -18,29 +19,50 @@ int main()
     );
 
 
+    LED led(
+        2,
+        300,
+        200
+    );
+
+
+    led.turnOn();
+
+
     manager.add(&resistor);
+    manager.add(&led);
 
 
     manager.drawAll();
+
+
     std::cout
-<< "Pin count: "
-<< resistor.getPins().size()
-<< std::endl;
+        << "LED pins: "
+        << led.getPins().size()
+        << std::endl;
 
 
-for(auto& pin : resistor.getPins())
-{
     std::cout
-    << pin.getName()
-    << " at "
-    << pin.getX()
-    << ", "
-    << pin.getY()
-    << std::endl;
-}
+        << "Resistor pins: "
+        << resistor.getPins().size()
+        << std::endl;
 
 
-    std::cout << "Component system works!" << std::endl;
+    for(auto& pin : resistor.getPins())
+    {
+        std::cout
+            << pin.getName()
+            << " at "
+            << pin.getX()
+            << ", "
+            << pin.getY()
+            << std::endl;
+    }
+
+
+    std::cout
+        << "Component system works!"
+        << std::endl;
 
 
     return 0;
