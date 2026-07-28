@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "components/Switch.h"
 #include "components/LED.h"
 #include "components/Resistor.h"
 #include "editor/ComponentManager.h"
@@ -29,11 +30,28 @@ int main()
     led.turnOn();
 
 
+    Switch sw(
+        3,
+        500,
+        200
+    );
+
+
+    sw.toggle();
+
+
     manager.add(&resistor);
     manager.add(&led);
+    manager.add(&sw);
 
 
     manager.drawAll();
+
+
+    std::cout
+        << "Resistor pins: "
+        << resistor.getPins().size()
+        << std::endl;
 
 
     std::cout
@@ -43,8 +61,14 @@ int main()
 
 
     std::cout
-        << "Resistor pins: "
-        << resistor.getPins().size()
+        << "Switch pins: "
+        << sw.getPins().size()
+        << std::endl;
+
+
+    std::cout
+        << "Switch state: "
+        << (sw.isOn() ? "ON" : "OFF")
         << std::endl;
 
 

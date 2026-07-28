@@ -16,6 +16,7 @@ src/core/Pin.cpp
 
 src/components/Resistor.cpp
 src/components/LED.cpp
+src/components/Switch.cpp
 
 src/editor/ComponentManager.cpp
 
