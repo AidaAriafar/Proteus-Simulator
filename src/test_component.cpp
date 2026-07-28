@@ -22,6 +22,22 @@ int main()
 
 
     manager.drawAll();
+    std::cout
+<< "Pin count: "
+<< resistor.getPins().size()
+<< std::endl;
+
+
+for(auto& pin : resistor.getPins())
+{
+    std::cout
+    << pin.getName()
+    << " at "
+    << pin.getX()
+    << ", "
+    << pin.getY()
+    << std::endl;
+}
 
 
     std::cout << "Component system works!" << std::endl;

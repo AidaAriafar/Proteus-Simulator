@@ -12,6 +12,7 @@ AidaTest
 src/test_component.cpp
 
 src/core/Component.cpp
+src/core/Pin.cpp
 
 src/components/Resistor.cpp
 
