@@ -29,6 +29,11 @@ public:
     std::string getType() override;
 
 
+    float getResistance()
+    {
+        return resistance;
+    }
+
 };
 
 
