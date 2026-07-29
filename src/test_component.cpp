@@ -5,7 +5,7 @@
 #include "components/Resistor.h"
 #include "editor/ComponentManager.h"
 
-
+#include <memory>
 int main()
 {
 
@@ -18,49 +18,84 @@ library.registerComponent("LED");
 library.registerComponent("Switch");
 
 
-for(auto& item : library.getComponents())
+for(const auto& item : library.getComponents())
 {
     std::cout
-    << "Library Component: "
-    << item
-    << std::endl;
+        << "Library Component: "
+        << item
+        << std::endl;
 }
 
 
-    Resistor resistor(
-        1,
-        100,
-        200,
-        1000
-    );
+Resistor resistor(
+    1,
+    100,
+    200,
+    1000
+);
 
 
-    LED led(
-        2,
-        300,
-        200
-    );
+LED led(
+    2,
+    300,
+    200
+);
 
 
-    led.turnOn();
+led.turnOn();
 
 
-    Switch sw(
-        3,
-        500,
-        200
-    );
+Switch sw(
+    3,
+    500,
+    200
+);
 
 
-    sw.toggle();
+sw.toggle();
 
 
-    manager.add(&resistor);
-    manager.add(&led);
-    manager.add(&sw);
+manager.add(&resistor);
+manager.add(&led);
+manager.add(&sw);
 
 
-    manager.drawAll();
+auto libraryLED = library.createComponent(
+    "LED",
+    4,
+    700,
+    200
+);
+
+
+if(libraryLED != nullptr)
+{
+    std::cout
+        << "Factory created: "
+        << libraryLED->getType()
+        << std::endl;
+
+    manager.add(libraryLED.get());
+}
+
+
+auto unknownComponent = library.createComponent(
+    "Motor",
+    5,
+    900,
+    200
+);
+
+
+if(unknownComponent == nullptr)
+{
+    std::cout
+        << "Component not found: Motor"
+        << std::endl;
+}
+
+
+manager.drawAll();
 
 
     std::cout

@@ -29,7 +29,7 @@ public:
     );
 
 
-    virtual ~Component();
+    virtual ~Component() = default;
 
 
     virtual void draw() = 0;
