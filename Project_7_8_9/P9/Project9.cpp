@@ -1,34 +1,6 @@
-/*
-    Project 9 - Measurement Instruments + D Flip-Flop
-    C++14 + SDL2
-
-    Included instruments:
-      1) Voltage probe
-      2) Digital voltmeter
-      3) Digital ammeter
-      4) Simple 4-channel oscilloscope
-
-    Digital component added:
-      Rising-edge triggered D flip-flop with asynchronous RESET
-      and propagation delay.
-
-    Keyboard:
-      Space : Run/Pause
-      R     : Stop/Reset simulation
-      S     : Fixed step (0.05 s)
-      N     : Advance to next event
-      D     : Toggle D input
-      C     : Manual clock pulse
-      A     : Toggle automatic clock
-      X     : Toggle RESET
-      P     : Cycle voltage-probe node
-      V     : Cycle voltmeter positive terminal
-      M     : Cycle voltmeter negative terminal
-      +/-   : Change clock frequency
-*/
+//Project 9 - Measurement Instruments + D Flip-Flop
 
 #include <SDL.h>
-
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -44,12 +16,10 @@
 #include <vector>
 
 namespace project9 {
-
 template <typename T>
 T clampValue(const T& value, const T& minimum, const T& maximum) {
     return std::max(minimum, std::min(value, maximum));
 }
-
 struct Color {
     Uint8 r;
     Uint8 g;
@@ -78,7 +48,6 @@ static const Color DISPLAY_TEXT = {114, 255, 152, 255};
 void setColor(SDL_Renderer* renderer, const Color& color) {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
 }
-
 void fillRect(SDL_Renderer* renderer, const SDL_Rect& rect, const Color& color) {
     setColor(renderer, color);
     SDL_RenderFillRect(renderer, &rect);
@@ -109,10 +78,7 @@ void drawThickLine(SDL_Renderer* renderer,
         }
     }
 }
-
-void drawFilledCircle(SDL_Renderer* renderer,
-                      int centerX, int centerY, int radius,
-                      const Color& color) {
+void drawFilledCircle(SDL_Renderer* renderer, int centerX, int centerY, int radius, const Color& color) {
     setColor(renderer, color);
     for (int y = -radius; y <= radius; ++y) {
         const int width = static_cast<int>(std::sqrt(
@@ -122,7 +88,6 @@ void drawFilledCircle(SDL_Renderer* renderer,
                            centerX + width, centerY + y);
     }
 }
-
 void drawCircle(SDL_Renderer* renderer,
                 int centerX, int centerY, int radius,
                 const Color& color) {
@@ -149,14 +114,12 @@ void drawCircle(SDL_Renderer* renderer,
         }
     }
 }
-
 bool contains(const SDL_Rect& rect, int x, int y) {
     return x >= rect.x && x < rect.x + rect.w &&
            y >= rect.y && y < rect.y + rect.h;
 }
 
 using Glyph = std::array<std::uint8_t, 7>;
-
 Glyph glyphFor(char character) {
     const char c = static_cast<char>(std::toupper(
         static_cast<unsigned char>(character)));
@@ -217,11 +180,7 @@ Glyph glyphFor(char character) {
     }
 }
 
-void drawCharacter(SDL_Renderer* renderer,
-                   char character,
-                   int x, int y,
-                   int scale,
-                   const Color& color) {
+void drawCharacter(SDL_Renderer* renderer, char character, int x, int y, int scale, const Color& color) {
     const Glyph glyph = glyphFor(character);
     setColor(renderer, color);
     for (int row = 0; row < 7; ++row) {
@@ -234,12 +193,10 @@ void drawCharacter(SDL_Renderer* renderer,
         }
     }
 }
-
 int textWidth(const std::string& text, int scale) {
     if (text.empty()) return 0;
     return static_cast<int>(text.size()) * 6 * scale - scale;
 }
-
 void drawText(SDL_Renderer* renderer,
               const std::string& text,
               int x, int y,
@@ -251,7 +208,6 @@ void drawText(SDL_Renderer* renderer,
         cursor += 6 * scale;
     }
 }
-
 void drawCenteredText(SDL_Renderer* renderer,
                       const std::string& text,
                       const SDL_Rect& rect,
@@ -261,13 +217,11 @@ void drawCenteredText(SDL_Renderer* renderer,
     const int y = rect.y + (rect.h - 7 * scale) / 2;
     drawText(renderer, text, x, y, scale, color);
 }
-
 std::string fixedNumber(double value, int precision) {
     std::ostringstream stream;
     stream << std::fixed << std::setprecision(precision) << value;
     return stream.str();
 }
-
 enum class LogicState {
     Low,
     High,
@@ -298,7 +252,6 @@ LogicState inverted(LogicState state) {
     if (state == LogicState::High) return LogicState::Low;
     return LogicState::Floating;
 }
-
 class Scheduler {
 public:
     struct Event {
@@ -313,7 +266,6 @@ public:
             return left.serial > right.serial;
         }
     };
-
     void schedule(double time, const std::function<void()>& callback) {
         Event event;
         event.time = time;
@@ -343,7 +295,6 @@ public:
         while (!events_.empty()) events_.pop();
         serial_ = 0;
     }
-
 private:
     std::priority_queue<Event, std::vector<Event>, Compare> events_;
     std::uint64_t serial_ = 0;
@@ -363,7 +314,6 @@ public:
     void setPropagationDelay(double seconds) {
         delay_ = clampValue(seconds, 0.0, 1.0);
     }
-
     double propagationDelay() const { return delay_; }
 
     void setD(LogicState state) {
@@ -389,7 +339,6 @@ public:
             });
         }
     }
-
     LogicState q() const { return q_; }
     LogicState qBar() const { return qBar_; }
 
@@ -427,7 +376,6 @@ private:
     double delay_ = 0.12;
     std::uint64_t generation_ = 0;
 };
-
 enum class NodeId {
     Ground,
     D,
@@ -490,7 +438,6 @@ public:
             std::cerr << "SDL_Init failed: " << SDL_GetError() << '\n';
             return false;
         }
-
         window_ = SDL_CreateWindow(
             "Project 9 - Measurement Instruments and D Flip-Flop",
             SDL_WINDOWPOS_CENTERED,
@@ -526,7 +473,6 @@ public:
         lastTicks_ = SDL_GetTicks();
         return true;
     }
-
     int run() {
         bool quit = false;
         while (!quit) {
@@ -553,7 +499,6 @@ public:
                     accumulator_ -= 0.01;
                 }
             }
-
             render();
         }
         return 0;
@@ -562,51 +507,42 @@ public:
 private:
     static const int WINDOW_WIDTH = 1440;
     static const int WINDOW_HEIGHT = 900;
-
     SDL_Window* window_ = NULL;
     SDL_Renderer* renderer_ = NULL;
     Scheduler scheduler_;
     DFlipFlop flipFlop_;
-
     SimulationMode mode_ = SimulationMode::Stopped;
     double simulationTime_ = 0.0;
     double accumulator_ = 0.0;
     double simulationSpeed_ = 1.0;
     Uint32 lastTicks_ = 0;
-
     LogicState d_ = LogicState::Low;
     LogicState clock_ = LogicState::Low;
     LogicState reset_ = LogicState::Low;
     LogicState q_ = LogicState::Low;
     LogicState qBar_ = LogicState::High;
-
     bool automaticClock_ = true;
     double clockFrequency_ = 1.0;
     double nextClockToggle_ = 0.5;
-
     NodeId probeNode_ = NodeId::Q;
     NodeId voltPositive_ = NodeId::Q;
     NodeId voltNegative_ = NodeId::Ground;
     double loadResistanceOhms_ = 330.0;
     double ledForwardVoltage_ = 2.0;
-
     std::deque<Sample> samples_;
     double nextSampleTime_ = 0.0;
     std::deque<std::string> logLines_;
-
     const SDL_Rect runButton_       = {24, 20, 108, 42};
     const SDL_Rect pauseButton_     = {142, 20, 108, 42};
     const SDL_Rect stopButton_      = {260, 20, 108, 42};
     const SDL_Rect stepButton_      = {378, 20, 108, 42};
     const SDL_Rect nextButton_      = {496, 20, 138, 42};
-
     const SDL_Rect dButton_         = {55, 135, 130, 58};
     const SDL_Rect autoClockButton_ = {55, 230, 130, 44};
     const SDL_Rect pulseButton_     = {55, 285, 130, 44};
     const SDL_Rect resetButton_     = {55, 370, 130, 52};
     const SDL_Rect frequencyMinus_  = {55, 465, 45, 36};
     const SDL_Rect frequencyPlus_   = {140, 465, 45, 36};
-
     const SDL_Rect probePanel_      = {940, 90, 465, 150};
     const SDL_Rect voltPanel_       = {940, 255, 465, 170};
     const SDL_Rect ampPanel_        = {940, 440, 465, 170};
@@ -615,7 +551,6 @@ private:
     const SDL_Rect voltMinusSelect_ = {1165, 361, 160, 36};
     const SDL_Rect resistanceMinus_ = {969, 556, 48, 34};
     const SDL_Rect resistancePlus_  = {1280, 556, 48, 34};
-
     const SDL_Rect scopePanel_      = {24, 630, 1381, 245};
 
     void shutdown() {
@@ -629,15 +564,12 @@ private:
         }
         SDL_Quit();
     }
-
     void appendLog(const std::string& text) {
         std::ostringstream stream;
-        stream << "T=" << std::fixed << std::setprecision(2)
-               << simulationTime_ << " " << text;
+        stream << "T=" << std::fixed << std::setprecision(2)<< simulationTime_ << " " << text;
         logLines_.push_front(stream.str());
         while (logLines_.size() > 6u) logLines_.pop_back();
     }
-
     void resetSimulation() {
         scheduler_.clear();
         simulationTime_ = 0.0;
@@ -658,19 +590,16 @@ private:
         recordSample(0.0);
         appendLog("SIMULATION RESET");
     }
-
     void setD(LogicState state) {
         d_ = state;
         flipFlop_.setD(d_);
         appendLog("D=" + logicName(d_));
     }
-
     void setClock(LogicState state) {
         clock_ = state;
         flipFlop_.setClock(clock_, simulationTime_);
         appendLog("CLK=" + logicName(clock_));
     }
-
     void setReset(LogicState state) {
         reset_ = state;
         flipFlop_.setReset(reset_, simulationTime_);
@@ -704,7 +633,6 @@ private:
         }
         appendLog("FREQ=" + fixedNumber(clockFrequency_, 2) + "HZ");
     }
-
     void advanceTo(double targetTime) {
         targetTime = std::max(targetTime, simulationTime_);
 
@@ -720,7 +648,6 @@ private:
 
             simulationTime_ = nextBoundary;
             scheduler_.runUntil(simulationTime_);
-
             if (automaticClock_ &&
                 simulationTime_ >= nextClockToggle_ - 1e-9) {
                 const LogicState nextState =
@@ -729,13 +656,10 @@ private:
                 setClock(nextState);
                 nextClockToggle_ += 0.5 / clockFrequency_;
             }
-
             scheduler_.runUntil(simulationTime_);
             sampleUntil(simulationTime_);
-
             if (nextBoundary >= targetTime - 1e-9) break;
         }
-
         scheduler_.runUntil(targetTime);
         simulationTime_ = targetTime;
         sampleUntil(simulationTime_);
@@ -750,7 +674,6 @@ private:
         if (mode_ == SimulationMode::Stopped) mode_ = SimulationMode::Paused;
         advanceTo(target);
     }
-
     void recordSample(double time) {
         Sample sample;
         sample.time = time;
@@ -764,7 +687,6 @@ private:
             samples_.pop_front();
         }
     }
-
     void sampleUntil(double time) {
         const double interval = 0.02;
         while (nextSampleTime_ <= time + 1e-9) {
@@ -772,7 +694,6 @@ private:
             nextSampleTime_ += interval;
         }
     }
-
     double nodeVoltage(NodeId node) const {
         switch (node) {
             case NodeId::Ground: return 0.0;
@@ -802,7 +723,6 @@ private:
         return (qVoltage - ledForwardVoltage_) /
                loadResistanceOhms_ * 1000.0;
     }
-
     std::string voltageText(double voltage) const {
         if (!std::isfinite(voltage)) return "--- V";
         return fixedNumber(voltage, 3) + " V";
@@ -812,7 +732,6 @@ private:
         if (!std::isfinite(current)) return "--- MA";
         return fixedNumber(current, 2) + " MA";
     }
-
     void handleKey(SDL_Keycode key) {
         switch (key) {
             case SDLK_SPACE:
@@ -881,7 +800,6 @@ private:
             setD(next);
             return;
         }
-
         if (button != SDL_BUTTON_LEFT) return;
 
         if (contains(runButton_, x, y)) {
@@ -918,22 +836,18 @@ private:
         } else if (contains(voltMinusSelect_, x, y)) {
             voltNegative_ = nextNode(voltNegative_);
         } else if (contains(resistanceMinus_, x, y)) {
-            loadResistanceOhms_ = clampValue(loadResistanceOhms_ - 50.0,
-                                              100.0, 2000.0);
+            loadResistanceOhms_ = clampValue(loadResistanceOhms_ - 50.0,100.0, 2000.0);
         } else if (contains(resistancePlus_, x, y)) {
-            loadResistanceOhms_ = clampValue(loadResistanceOhms_ + 50.0,
-                                              100.0, 2000.0);
+            loadResistanceOhms_ = clampValue(loadResistanceOhms_ + 50.0,100.0, 2000.0);
         }
     }
-
     void drawButton(const SDL_Rect& rect,
                     const std::string& text,
                     bool active,
                     const Color& accent) {
         fillRect(renderer_, rect, active ? accent : PANEL_LIGHT);
         drawRect(renderer_, rect, active ? WHITE : MUTED);
-        drawCenteredText(renderer_, text, rect, 2,
-                         active ? BLACK : WHITE);
+        drawCenteredText(renderer_, text, rect, 2,active ? BLACK : WHITE);
     }
 
     void renderTopBar() {
@@ -944,13 +858,9 @@ private:
         drawButton(stopButton_, "STOP", mode_ == SimulationMode::Stopped, RED);
         drawButton(stepButton_, "STEP", false, CYAN);
         drawButton(nextButton_, "NEXT EVENT", false, PURPLE);
-
-        drawText(renderer_, "PROJECT 9: D FLIP-FLOP + MEASUREMENT TOOLS",
-                 670, 19, 2, WHITE);
-        drawText(renderer_, "TIME " + fixedNumber(simulationTime_, 2) + " S",
-                 670, 47, 2, CYAN);
-        drawText(renderer_, "EVENTS " + std::to_string(scheduler_.size()),
-                 1000, 47, 2, MUTED);
+        drawText(renderer_, "PROJECT 9: D FLIP-FLOP + MEASUREMENT TOOLS",670, 19, 2, WHITE);
+        drawText(renderer_, "TIME " + fixedNumber(simulationTime_, 2) + " S",670, 47, 2, CYAN);
+        drawText(renderer_, "EVENTS " + std::to_string(scheduler_.size()),1000, 47, 2, MUTED);
     }
 
     void renderInputPanel() {
@@ -958,7 +868,6 @@ private:
         fillRect(renderer_, panel, PANEL);
         drawRect(renderer_, panel, GRID);
         drawText(renderer_, "INPUTS", 70, 105, 2, WHITE);
-
         drawText(renderer_, "DATA D", 75, 126, 2, MUTED);
         fillRect(renderer_, dButton_, logicColor(d_));
         drawRect(renderer_, dButton_, WHITE);
@@ -966,32 +875,22 @@ private:
         if (d_ == LogicState::High) dLabel = "HIGH 5V";
         else if (d_ == LogicState::Floating) dLabel = "FLOAT";
         drawCenteredText(renderer_, dLabel, dButton_, 2, WHITE);
-
         drawText(renderer_, "CLOCK", 75, 211, 2, MUTED);
         drawButton(autoClockButton_,
                    automaticClock_ ? "AUTO ON" : "AUTO OFF",
                    automaticClock_, GREEN);
         drawButton(pulseButton_, "PULSE CLK", false, CYAN);
-
         drawText(renderer_, "ASYNC RESET", 53, 350, 2, MUTED);
-        fillRect(renderer_, resetButton_,
-                 reset_ == LogicState::High ? ORANGE : PANEL_LIGHT);
+        fillRect(renderer_, resetButton_,reset_ == LogicState::High ? ORANGE : PANEL_LIGHT);
         drawRect(renderer_, resetButton_, WHITE);
-        drawCenteredText(renderer_,
-                         reset_ == LogicState::High ? "RESET ON" : "RESET OFF",
-                         resetButton_, 2, WHITE);
-
+        drawCenteredText(renderer_,reset_ == LogicState::High ? "RESET ON" : "RESET OFF",resetButton_, 2, WHITE);
         drawText(renderer_, "FREQUENCY", 61, 444, 2, MUTED);
         drawButton(frequencyMinus_, "-", false, BLUE);
         drawButton(frequencyPlus_, "+", false, RED);
-        drawText(renderer_, fixedNumber(clockFrequency_, 2) + " HZ",
-                 70, 513, 2, CYAN);
-
-        drawText(renderer_, "DELAY " + fixedNumber(flipFlop_.propagationDelay(), 2) + " S",
-                 46, 550, 2, MUTED);
+        drawText(renderer_, fixedNumber(clockFrequency_, 2) + " HZ",70, 513, 2, CYAN);
+        drawText(renderer_, "DELAY " + fixedNumber(flipFlop_.propagationDelay(), 2) + " S",46, 550, 2, MUTED);
         drawText(renderer_, "D/C/A/X KEYS", 48, 582, 1, MUTED);
     }
-
     void drawWire(int x1, int y1, int x2, int y2, LogicState state) {
         drawThickLine(renderer_, x1, y1, x2, y2,
                       logicColor(state, mode_ == SimulationMode::Stopped), 4);
@@ -1010,7 +909,6 @@ private:
         drawText(renderer_, "Q", 650, 250, 4, BLACK);
         drawText(renderer_, "QBAR", 610, 355, 2, BLACK);
         drawText(renderer_, "DFF", 555, 302, 3, BLACK);
-
         drawLine(renderer_, body.x, 345, body.x + 20, 355, BLACK);
         drawLine(renderer_, body.x + 20, 355, body.x, 365, BLACK);
         drawText(renderer_, "CLK", 500, 380, 2, BLACK);
@@ -1030,52 +928,40 @@ private:
 
         drawWire(body.x + body.w, 270, 870, 270, q_);
         drawWire(body.x + body.w, 380, 870, 380, qBar_);
-        drawFilledCircle(renderer_, 870, 270, 9,
-                         q_ == LogicState::High ? RED :
-                         (q_ == LogicState::Low ? BLUE : YELLOW));
-        drawFilledCircle(renderer_, 870, 380, 9,
-                         qBar_ == LogicState::High ? RED :
-                         (qBar_ == LogicState::Low ? BLUE : YELLOW));
+        drawFilledCircle(renderer_, 870, 270, 9,q_ == LogicState::High ? RED :(q_ == LogicState::Low ? BLUE : YELLOW));
+        drawFilledCircle(renderer_, 870, 380, 9,qBar_ == LogicState::High ? RED :(qBar_ == LogicState::Low ? BLUE : YELLOW));
         drawText(renderer_, "Q " + logicName(q_), 745, 245, 2, WHITE);
         drawText(renderer_, "QBAR " + logicName(qBar_), 720, 355, 2, WHITE);
-
         drawText(renderer_, "LOAD: Q -> R -> LED -> GND", 380, 478, 2, MUTED);
         drawWire(430, 520, 535, 520, q_);
         SDL_Rect resistor = {535, 505, 105, 30};
         fillRect(renderer_, resistor, {211, 185, 125, 255});
         drawRect(renderer_, resistor, WHITE);
-        drawCenteredText(renderer_, fixedNumber(loadResistanceOhms_, 0) + " OHM",
-                         resistor, 1, BLACK);
+        drawCenteredText(renderer_, fixedNumber(loadResistanceOhms_, 0) + " OHM",resistor, 1, BLACK);
         drawWire(640, 520, 720, 520, q_);
         drawCircle(renderer_, 750, 520, 24, WHITE);
-        drawText(renderer_, "LED", 732, 512, 1,
-                 loadCurrentMilliAmps() > 0.01 ? YELLOW : MUTED);
+        drawText(renderer_, "LED", 732, 512, 1,loadCurrentMilliAmps() > 0.01 ? YELLOW : MUTED);
         drawLine(renderer_, 774, 520, 820, 520, WIRE_OFF);
         drawLine(renderer_, 820, 520, 820, 545, WIRE_OFF);
         drawLine(renderer_, 800, 545, 840, 545, WHITE);
         drawLine(renderer_, 807, 552, 833, 552, WHITE);
         drawLine(renderer_, 814, 559, 826, 559, WHITE);
-
-        drawText(renderer_, "EDGE CAPTURES D AFTER PROPAGATION DELAY",
-                 350, 580, 1, MUTED);
+        drawText(renderer_, "EDGE CAPTURES D AFTER PROPAGATION DELAY", 350, 580, 1, MUTED);
     }
 
     void renderProbe() {
         fillRect(renderer_, probePanel_, PANEL);
         drawRect(renderer_, probePanel_, GRID);
         drawText(renderer_, "VOLTAGE PROBE", 970, 104, 2, WHITE);
-
         const double voltage = nodeVoltage(probeNode_);
         SDL_Rect display = {1150, 130, 220, 68};
         fillRect(renderer_, display, DISPLAY);
         drawRect(renderer_, display, GREEN);
         drawCenteredText(renderer_, voltageText(voltage), display, 3, DISPLAY_TEXT);
-
         drawText(renderer_, "NODE", 970, 151, 2, MUTED);
         fillRect(renderer_, probeSelect_, PANEL_LIGHT);
         drawRect(renderer_, probeSelect_, CYAN);
         drawCenteredText(renderer_, nodeName(probeNode_), probeSelect_, 2, WHITE);
-
         drawLine(renderer_, 1368, 220, 1387, 241, YELLOW);
         drawLine(renderer_, 1387, 241, 1377, 239, YELLOW);
         drawLine(renderer_, 1387, 241, 1385, 231, YELLOW);
@@ -1085,12 +971,10 @@ private:
         fillRect(renderer_, voltPanel_, PANEL);
         drawRect(renderer_, voltPanel_, GRID);
         drawText(renderer_, "DIGITAL VOLTMETER", 970, 269, 2, WHITE);
-
         const double plus = nodeVoltage(voltPositive_);
         const double minus = nodeVoltage(voltNegative_);
         double difference = std::numeric_limits<double>::quiet_NaN();
         if (std::isfinite(plus) && std::isfinite(minus)) difference = plus - minus;
-
         SDL_Rect display = {1000, 301, 370, 52};
         fillRect(renderer_, display, DISPLAY);
         drawRect(renderer_, display, GREEN);
@@ -1145,9 +1029,7 @@ private:
         const int middleY = (highY + lowY) / 2;
 
         drawText(renderer_, label, graph.x + 8, channelTop + 7, 1, color);
-        drawLine(renderer_, graph.x + 55, lowY, graph.x + graph.w - 8, lowY,
-                 {58, 66, 78, 255});
-
+        drawLine(renderer_, graph.x + 55, lowY, graph.x + graph.w - 8, lowY,{58, 66, 78, 255});
         if (samples_.size() < 2u) return;
         const double windowSeconds = 8.0;
         const double rightTime = std::max(windowSeconds, simulationTime_);
@@ -1178,12 +1060,10 @@ private:
             havePrevious = true;
         }
     }
-
     void renderOscilloscope() {
         fillRect(renderer_, scopePanel_, BLACK);
         drawRect(renderer_, scopePanel_, CYAN);
-        drawText(renderer_, "SIMPLE OSCILLOSCOPE - 4 DIGITAL CHANNELS - 8 SECOND WINDOW",
-                 45, 642, 2, WHITE);
+        drawText(renderer_, "SIMPLE OSCILLOSCOPE - 4 DIGITAL CHANNELS - 8 SECOND WINDOW",45, 642, 2, WHITE);
 
         SDL_Rect graph = {42, 670, 1344, 190};
         fillRect(renderer_, graph, {10, 18, 17, 255});
@@ -1221,7 +1101,6 @@ private:
     void render() {
         setColor(renderer_, BACKGROUND);
         SDL_RenderClear(renderer_);
-
         renderTopBar();
         renderInputPanel();
         renderCircuit();
@@ -1230,13 +1109,11 @@ private:
         renderAmmeter();
         renderLog();
         renderOscilloscope();
-
         SDL_RenderPresent(renderer_);
     }
 };
 
-}  // namespace project9
-
+}  
 int main(int argc, char** argv) {
     (void)argc;
     (void)argv;
