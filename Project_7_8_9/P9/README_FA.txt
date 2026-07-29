@@ -28,13 +28,6 @@ V     : Next voltmeter positive node
 M     : Next voltmeter negative node
 +/-   : Clock frequency
 
-نصب در CLion:
-1) پوشه را با File > Open باز کنید.
-2) Toolchain را روی MSYS2-UCRT64 بگذارید.
-3) Tools > CMake > Reset Cache and Reload Project
-4) Target را Project9 انتخاب کنید.
-5) Build و سپس Run را بزنید.
-
 نکته ورودی D:
 - کلیک چپ: تغییر LOW/HIGH
 - کلیک راست: گردش LOW/HIGH/FLOAT
