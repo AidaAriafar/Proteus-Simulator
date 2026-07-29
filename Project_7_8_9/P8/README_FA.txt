@@ -16,15 +16,6 @@
 - Next Event برای رفتن دقیق تا رخداد منطقی بعدی
 - کلاک یک هرتز برای آزمایش اجرای پیوسته و گام‌به‌گام
 
-روش قرار دادن در CLion:
-- یک پوشه جدید بسازید.
-- فایل کد را با نام Project8.cpp داخل آن قرار دهید.
-- فایل CMakeLists_Project8.txt را با نام CMakeLists.txt داخل همان پوشه قرار دهید.
-- پوشه را از File > Open در CLion باز کنید.
-- Toolchain را روی MSYS2-UCRT64 بگذارید.
-- Reset Cache and Reload Project را اجرا کنید.
-- Target را روی Project8 بگذارید و Run کنید.
-
 کلیدها:
 Space: Run/Pause
 R: Stop
