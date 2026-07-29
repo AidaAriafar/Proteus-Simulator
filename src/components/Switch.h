@@ -4,6 +4,7 @@
 
 #include "../core/Component.h"
 
+#include <memory>
 
 class Switch : public Component
 {
@@ -26,7 +27,22 @@ public:
     void draw() override;
 
 
-    std::string getType() override;
+    std::string getType() const override;
+
+
+    std::unique_ptr<Component> clone(
+        int newID
+    ) const override;
+
+
+    std::vector<PropertyDescriptor> getProperties() const override;
+
+
+    bool setProperty(
+        const std::string& key,
+        const std::string& value,
+        std::string& error
+    ) override;
 
 
     void toggle();

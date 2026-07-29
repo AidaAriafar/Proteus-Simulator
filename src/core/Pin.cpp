@@ -6,7 +6,9 @@ Pin::Pin(
     std::string name,
     float x,
     float y,
-    PinType type
+    PinType type,
+    bool required,
+    PinDirection direction
 )
 {
     this->id=id;
@@ -14,52 +16,123 @@ Pin::Pin(
 
     this->x=x;
     this->y=y;
+    this->localX=x;
+    this->localY=y;
 
     this->type=type;
+    this->baseDirection=direction;
+    this->direction=direction;
 
     connected=false;
+    this->required=required;
 }
 
 
 
-int Pin::getID()
+int Pin::getID() const
 {
     return id;
 }
 
 
 
-std::string Pin::getName()
+std::string Pin::getName() const
 {
     return name;
 }
 
 
 
-float Pin::getX()
+float Pin::getX() const
 {
     return x;
 }
 
 
 
-float Pin::getY()
+float Pin::getY() const
 {
     return y;
 }
 
 
 
-PinType Pin::getType()
+float Pin::getLocalX() const
+{
+    return localX;
+}
+
+
+
+float Pin::getLocalY() const
+{
+    return localY;
+}
+
+
+
+PinType Pin::getType() const
 {
     return type;
 }
 
 
 
-bool Pin::isConnected()
+PinDirection Pin::getDirection() const
+{
+    return direction;
+}
+
+
+
+PinDirection Pin::getBaseDirection() const
+{
+    return baseDirection;
+}
+
+
+
+bool Pin::isRequired() const
+{
+    return required;
+}
+
+
+
+bool Pin::isConnected() const
 {
     return connected;
+}
+
+
+
+void Pin::setPosition(
+    float newX,
+    float newY
+)
+{
+    x = newX;
+    y = newY;
+}
+
+
+
+void Pin::setLocalPosition(
+    float newLocalX,
+    float newLocalY
+)
+{
+    localX = newLocalX;
+    localY = newLocalY;
+}
+
+
+
+void Pin::setDirection(
+    PinDirection newDirection
+)
+{
+    direction = newDirection;
 }
 
 

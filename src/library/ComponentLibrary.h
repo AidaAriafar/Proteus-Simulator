@@ -4,8 +4,16 @@
 #include "../core/Component.h"
 
 #include <memory>
+#include <functional>
 #include <string>
 #include <vector>
+
+struct LibraryItem
+{
+    std::string name;
+    std::string displayName;
+    ComponentCategory category;
+};
 
 
 class ComponentLibrary
@@ -13,7 +21,8 @@ class ComponentLibrary
 
 private:
 
-    std::vector<std::string> components;
+    std::vector<LibraryItem> components;
+    std::vector<std::function<std::unique_ptr<Component>(int, float, float)>> factories;
 
 
 public:
@@ -27,6 +36,9 @@ public:
 
 
     std::vector<std::string> getComponents() const;
+
+
+    std::vector<LibraryItem> getItems() const;
 
 
     bool exists(
