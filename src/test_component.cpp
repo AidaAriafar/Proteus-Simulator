@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include "library/ComponentLibrary.h"
 #include "components/Switch.h"
 #include "components/LED.h"
 #include "components/Resistor.h"
@@ -10,6 +10,21 @@ int main()
 {
 
     ComponentManager manager;
+    ComponentLibrary library;
+
+
+library.registerComponent("Resistor");
+library.registerComponent("LED");
+library.registerComponent("Switch");
+
+
+for(auto& item : library.getComponents())
+{
+    std::cout
+    << "Library Component: "
+    << item
+    << std::endl;
+}
 
 
     Resistor resistor(

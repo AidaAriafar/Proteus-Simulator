@@ -20,4 +20,6 @@ src/components/Switch.cpp
 
 src/editor/ComponentManager.cpp
 
+src/library/ComponentLibrary.cpp
+
 )
