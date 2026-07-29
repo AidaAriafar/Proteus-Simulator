@@ -8,7 +8,16 @@ enum class PinType
 {
     INPUT,
     OUTPUT,
-    POWER
+    POWER,
+    BIDIRECTIONAL
+};
+
+enum class PinDirection
+{
+    LEFT,
+    RIGHT,
+    UP,
+    DOWN
 };
 
 
@@ -23,11 +32,16 @@ private:
 
     float x;
     float y;
+    float localX;
+    float localY;
 
     PinType type;
+    PinDirection baseDirection;
+    PinDirection direction;
 
 
     bool connected;
+    bool required;
 
 
 public:
@@ -38,26 +52,60 @@ public:
         std::string name,
         float x,
         float y,
-        PinType type
+        PinType type,
+        bool required = true,
+        PinDirection direction = PinDirection::RIGHT
     );
 
 
-    int getID();
+    int getID() const;
 
 
-    std::string getName();
+    std::string getName() const;
 
 
-    float getX();
+    float getX() const;
 
 
-    float getY();
+    float getY() const;
 
 
-    PinType getType();
+    float getLocalX() const;
 
 
-    bool isConnected();
+    float getLocalY() const;
+
+
+    PinType getType() const;
+
+
+    PinDirection getDirection() const;
+
+
+    PinDirection getBaseDirection() const;
+
+
+    bool isRequired() const;
+
+
+    bool isConnected() const;
+
+
+    void setPosition(
+        float newX,
+        float newY
+    );
+
+
+    void setLocalPosition(
+        float newLocalX,
+        float newLocalY
+    );
+
+
+    void setDirection(
+        PinDirection newDirection
+    );
 
 
     void connect();

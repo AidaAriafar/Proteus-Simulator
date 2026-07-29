@@ -4,6 +4,7 @@
 
 #include "../core/Component.h"
 
+#include <memory>
 
 class LED : public Component
 {
@@ -11,6 +12,7 @@ class LED : public Component
 private:
 
     bool state;
+    std::string color;
 
 
 public:
@@ -26,7 +28,22 @@ public:
     void draw() override;
 
 
-    std::string getType() override;
+    std::string getType() const override;
+
+
+    std::unique_ptr<Component> clone(
+        int newID
+    ) const override;
+
+
+    std::vector<PropertyDescriptor> getProperties() const override;
+
+
+    bool setProperty(
+        const std::string& key,
+        const std::string& value,
+        std::string& error
+    ) override;
 
 
     void turnOn();
@@ -36,6 +53,14 @@ public:
 
 
     bool isOn();
+
+
+    std::string getColor() const;
+
+
+    void setColor(
+        const std::string& newColor
+    );
 
 
 };

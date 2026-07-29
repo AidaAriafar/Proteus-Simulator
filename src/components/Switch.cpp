@@ -26,7 +26,9 @@ Component(id,x,y)
             "Input",
             x - 20,
             y,
-            PinType::INPUT
+            PinType::INPUT,
+            true,
+            PinDirection::LEFT
         )
     );
 
@@ -39,7 +41,9 @@ Component(id,x,y)
             "Output",
             x + 20,
             y,
-            PinType::OUTPUT
+            PinType::OUTPUT,
+            true,
+            PinDirection::RIGHT
         )
     );
 
@@ -63,9 +67,50 @@ void Switch::draw()
 
 
 
-std::string Switch::getType()
+std::string Switch::getType() const
 {
     return "Switch";
+}
+
+
+
+std::unique_ptr<Component> Switch::clone(
+    int newID
+) const
+{
+    auto copy = std::make_unique<Switch>(newID, x, y);
+    copy->setLabel(getLabel());
+    if(state) copy->turnOn();
+    copy->setRotation(getRotation());
+    if(isMirroredHorizontally()) copy->mirrorHorizontal();
+    if(isMirroredVertically()) copy->mirrorVertical();
+    return copy;
+}
+
+
+
+std::vector<PropertyDescriptor> Switch::getProperties() const
+{
+    auto properties = Component::getProperties();
+    properties.push_back({"closed", "Closed", PropertyKind::Boolean, state ? "true" : "false", "", true, {}});
+    return properties;
+}
+
+
+
+bool Switch::setProperty(
+    const std::string& key,
+    const std::string& value,
+    std::string& error
+)
+{
+    if(key == "closed")
+    {
+        state = (value == "true" || value == "1" || value == "on");
+        return true;
+    }
+
+    return Component::setProperty(key, value, error);
 }
 
 
