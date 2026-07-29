@@ -1,32 +1,8 @@
-/*
-    Mahmoudi - Project 7: Ideal ADC and DAC with SDL2 graphics
 
-    Linux build:
-      g++ Mahmoudi_Project7_ADC_DAC_SDL2.cpp -std=c++14 -O2 \
-          $(sdl2-config --cflags --libs) -o Mahmoudi_ADC_DAC
-
-    Windows / MinGW build (SDL2 development package must be configured):
-      g++ Mahmoudi_Project7_ADC_DAC_SDL2.cpp -std=c++14 -O2 \
-          -I<SDL2_INCLUDE> -L<SDL2_LIB> -lmingw32 -lSDL2main -lSDL2 \
-          -o Mahmoudi_ADC_DAC.exe
-
-    Controls:
-      RUN / PAUSE / STEP / STOP : simulation control
-      FLOAT                      : floating/valid ADC input
-      LINK                       : connect ADC bus to DAC bus
-      Drag VIN slider            : change analog input (-1V to 6V)
-      Click DAC bit circles      : toggle bits when LINK is OFF
-      Arrow Left / Right         : change VIN
-      Space                      : run/pause
-      F                          : floating input
-      L                          : link/unlink
-      R                          : reset
-*/
+//  Mahmoudi - Project 7: Ideal ADC and DAC with SDL2 graphics
 
 #define SDL_MAIN_HANDLED
-
 #include <SDL.h>
-
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -43,9 +19,6 @@
 #include <utility>
 #include <vector>
 
-
-// Compatibility helpers for older MinGW versions that do not provide
-// C++17 <optional> and std::clamp. The project therefore builds with C++14.
 struct NullOptType {};
 static const NullOptType nullopt = NullOptType{};
 
@@ -154,7 +127,6 @@ void drawLine(SDL_Renderer* renderer, int x1, int y1, int x2, int y2, Color colo
     setColor(renderer, color);
     SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
 }
-
 void drawFilledCircle(SDL_Renderer* renderer, int centerX, int centerY, int radius, Color color) {
     setColor(renderer, color);
     for (int y = -radius; y <= radius; ++y) {
@@ -1489,7 +1461,7 @@ private:
     }
 };
 
-} // namespace circuit
+} 
 
 int main() {
     try {
