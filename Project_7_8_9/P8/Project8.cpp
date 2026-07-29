@@ -1,32 +1,6 @@
-/*
-    Project 8 - Proteus-style Logic Gate Simulation Control
-    C++14 + SDL2
-
-    Gates included:
-      BUFFER, NOT, AND, NAND, OR, NOR, XOR, XNOR
-
-    Features:
-      - Run / Pause / Stop
-      - Fixed step and next-event step
-      - Event-driven propagation delay for every gate
-      - Live HIGH / LOW / FLOAT wire colors
-      - Interactive inputs A and B
-      - Proteus-like ANSI gate symbols and output LEDs
-      - Click a gate to show its truth table
-
-    Controls:
-      Mouse left on A/B : toggle LOW/HIGH
-      Mouse right on A/B: cycle LOW/HIGH/FLOAT
-      A / B             : toggle corresponding input
-      1 / 2             : cycle corresponding input including FLOAT
-      Space             : Run/Pause
-      S                 : fixed step 0.10 s
-      N                 : advance to next event
-      R                 : Stop/reset
-*/
+// Project 8 - Proteus-style Logic Gate Simulation Control
 
 #include <SDL.h>
-
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -42,16 +16,10 @@
 #include <vector>
 
 namespace project8 {
-
-// -----------------------------------------------------------------------------
-// Helpers
-// -----------------------------------------------------------------------------
-
 template <typename T>
 T clampValue(const T& value, const T& minimum, const T& maximum) {
     return std::max(minimum, std::min(value, maximum));
 }
-
 struct Color {
     Uint8 r;
     Uint8 g;
@@ -81,7 +49,6 @@ static const Color SELECTED         = {255, 214, 92, 255};
 void setColor(SDL_Renderer* renderer, const Color& color) {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
 }
-
 void fillRect(SDL_Renderer* renderer, const SDL_Rect& rect, const Color& color) {
     setColor(renderer, color);
     SDL_RenderFillRect(renderer, &rect);
@@ -114,12 +81,9 @@ void drawThickLine(SDL_Renderer* renderer,
         }
     }
 }
-
-void drawFilledCircle(SDL_Renderer* renderer,
-                      int centerX,
+void drawFilledCircle(SDL_Renderer* renderer, int centerX,
                       int centerY,
-                      int radius,
-                      const Color& color) {
+                      int radius,const Color& color) {
     setColor(renderer, color);
     for (int y = -radius; y <= radius; ++y) {
         const int width = static_cast<int>(std::sqrt(
@@ -158,7 +122,6 @@ void drawCircle(SDL_Renderer* renderer,
         }
     }
 }
-
 bool contains(const SDL_Rect& rect, int x, int y) {
     return x >= rect.x && x < rect.x + rect.w &&
            y >= rect.y && y < rect.y + rect.h;
@@ -176,7 +139,6 @@ void drawPolyline(SDL_Renderer* renderer,
                       color, thickness);
     }
 }
-
 SDL_Point quadraticPoint(const SDL_Point& p0,
                          const SDL_Point& p1,
                          const SDL_Point& p2,
@@ -187,7 +149,6 @@ SDL_Point quadraticPoint(const SDL_Point& p0,
     point.y = static_cast<int>(u * u * p0.y + 2.0 * u * t * p1.y + t * t * p2.y);
     return point;
 }
-
 void drawQuadratic(SDL_Renderer* renderer,
                    const SDL_Point& p0,
                    const SDL_Point& p1,
@@ -205,11 +166,6 @@ void drawQuadratic(SDL_Renderer* renderer,
         previous = current;
     }
 }
-
-// -----------------------------------------------------------------------------
-// Tiny 5x7 font, no SDL_ttf dependency
-// -----------------------------------------------------------------------------
-
 using Glyph = std::array<std::uint8_t, 7>;
 
 Glyph glyphFor(char character) {
@@ -269,7 +225,6 @@ Glyph glyphFor(char character) {
         default:  return {{31,17,1,6,4,0,4}};
     }
 }
-
 int textWidth(const std::string& text, int scale) {
     return static_cast<int>(text.size()) * 6 * scale;
 }
@@ -286,12 +241,7 @@ void drawText(SDL_Renderer* renderer,
         for (int row = 0; row < 7; ++row) {
             for (int column = 0; column < 5; ++column) {
                 if ((glyph[row] & (1u << (4 - column))) != 0u) {
-                    SDL_Rect pixel = {
-                        cursorX + column * scale,
-                        y + row * scale,
-                        scale,
-                        scale
-                    };
+                    SDL_Rect pixel = {cursorX + column * scale, y + row * scale, scale,scale  };
                     SDL_RenderFillRect(renderer, &pixel);
                 }
             }
@@ -299,36 +249,23 @@ void drawText(SDL_Renderer* renderer,
         cursorX += 6 * scale;
     }
 }
-
 void drawCenteredText(SDL_Renderer* renderer,
                       const std::string& text,
                       const SDL_Rect& rect,
                       int scale,
                       const Color& color) {
-    drawText(renderer,
-             text,
+    drawText(renderer,text,
              rect.x + (rect.w - textWidth(text, scale)) / 2,
              rect.y + (rect.h - 7 * scale) / 2,
              scale,
              color);
 }
-
 std::string formatDouble(double value, int precision = 2) {
     std::ostringstream stream;
     stream << std::fixed << std::setprecision(precision) << value;
     return stream.str();
 }
-
-// -----------------------------------------------------------------------------
-// Digital logic model
-// -----------------------------------------------------------------------------
-
-enum class LogicState {
-    Low,
-    High,
-    Undefined
-};
-
+enum class LogicState {Low,High,Undefined};
 std::string logicName(LogicState state) {
     switch (state) {
         case LogicState::Low: return "LOW";
@@ -344,7 +281,6 @@ std::string logicShort(LogicState state) {
         default: return "X";
     }
 }
-
 Color logicColor(LogicState state, bool stopped) {
     if (stopped) return DEFAULT_WIRE;
     switch (state) {
@@ -353,7 +289,6 @@ Color logicColor(LogicState state, bool stopped) {
         default: return YELLOW;
     }
 }
-
 LogicState invertLogic(LogicState value) {
     if (value == LogicState::Undefined) return LogicState::Undefined;
     return value == LogicState::High ? LogicState::Low : LogicState::High;
@@ -383,11 +318,6 @@ enum class SimulationMode {
     Paused,
     Running
 };
-
-// -----------------------------------------------------------------------------
-// Event-driven scheduler
-// -----------------------------------------------------------------------------
-
 class EventScheduler {
 public:
     using Callback = std::function<void()>;
@@ -427,7 +357,6 @@ public:
         }
         currentTime_ = targetTime;
     }
-
     void runNext() {
         if (events_.empty()) return;
         runUntil(events_.top().time);
@@ -447,7 +376,6 @@ private:
             return left.sequence > right.sequence;
         }
     };
-
     double currentTime_;
     std::uint64_t nextSequence_;
     std::priority_queue<Event, std::vector<Event>, Compare> events_;
@@ -457,7 +385,6 @@ class SimulationController {
 public:
     SimulationController()
         : mode_(SimulationMode::Stopped), fixedStep_(0.10) {}
-
     SimulationMode mode() const { return mode_; }
     EventScheduler& scheduler() { return scheduler_; }
     const EventScheduler& scheduler() const { return scheduler_; }
@@ -487,13 +414,11 @@ public:
         mode_ = SimulationMode::Paused;
         scheduler_.runNext();
     }
-
 private:
     SimulationMode mode_;
     double fixedStep_;
     EventScheduler scheduler_;
 };
-
 class SimulationLog {
 public:
     void clear() { lines_.clear(); }
@@ -505,17 +430,11 @@ public:
         lines_.push_back(stream.str());
         if (lines_.size() > 9u) lines_.erase(lines_.begin());
     }
-
     const std::vector<std::string>& lines() const { return lines_; }
 
 private:
     std::vector<std::string> lines_;
 };
-
-// -----------------------------------------------------------------------------
-// Input switch
-// -----------------------------------------------------------------------------
-
 class InputSwitch {
 public:
     InputSwitch(const std::string& label, const SDL_Rect& bounds)
@@ -535,7 +454,6 @@ public:
         else if (state_ == LogicState::High) state_ = LogicState::Undefined;
         else state_ = LogicState::Low;
     }
-
     void draw(SDL_Renderer* renderer, bool stopped) const {
         fillRect(renderer, bounds_, PANEL_LIGHT);
         drawRect(renderer, bounds_, CYAN);
@@ -564,16 +482,11 @@ public:
                          5,
                          WHITE);
     }
-
 private:
     std::string label_;
     SDL_Rect bounds_;
     LogicState state_;
 };
-
-// -----------------------------------------------------------------------------
-// Logic gates
-// -----------------------------------------------------------------------------
 
 enum class GateType {
     Buffer,
@@ -585,7 +498,6 @@ enum class GateType {
     Xor,
     Xnor
 };
-
 std::string gateName(GateType type) {
     switch (type) {
         case GateType::Buffer: return "BUFFER";
@@ -853,11 +765,6 @@ private:
     bool selected_;
     SimulationLog& log_;
 };
-
-// -----------------------------------------------------------------------------
-// UI button
-// -----------------------------------------------------------------------------
-
 class UiButton {
 public:
     UiButton(const std::string& label,
@@ -883,10 +790,6 @@ private:
     SDL_Rect bounds_;
     Color accent_;
 };
-
-// -----------------------------------------------------------------------------
-// Circuit canvas with all gates
-// -----------------------------------------------------------------------------
 
 class LogicGateCircuit {
 public:
@@ -1065,7 +968,6 @@ private:
             }
         }
     }
-
     void drawGateOutputWires(SDL_Renderer* renderer,
                              bool stopped,
                              SimulationMode mode,
@@ -1096,7 +998,6 @@ private:
                      BLACK);
         }
     }
-
     SimulationLog& log_;
     InputSwitch inputA_;
     InputSwitch inputB_;
@@ -1104,11 +1005,6 @@ private:
     std::size_t selectedIndex_;
     bool started_;
 };
-
-// -----------------------------------------------------------------------------
-// Main application
-// -----------------------------------------------------------------------------
-
 class Application {
 public:
     Application()
@@ -1135,7 +1031,6 @@ public:
             std::cerr << "SDL_Init failed: " << SDL_GetError() << '\n';
             return false;
         }
-
         window_ = SDL_CreateWindow(
             "Project 8 - All Logic Gates - Proteus Style",
             SDL_WINDOWPOS_CENTERED,
@@ -1147,7 +1042,6 @@ public:
             std::cerr << "SDL_CreateWindow failed: " << SDL_GetError() << '\n';
             return false;
         }
-
         renderer_ = SDL_CreateRenderer(
             window_, -1,
             SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
@@ -1301,7 +1195,6 @@ private:
             default: return MUTED;
         }
     }
-
     void render() {
         setColor(renderer_, BACKGROUND);
         SDL_RenderClear(renderer_);
@@ -1310,7 +1203,6 @@ private:
         circuit_.draw(renderer_, controller_.mode(), controller_.time());
         drawRightPanel();
         drawBottomHelp();
-
         SDL_RenderPresent(renderer_);
     }
 
@@ -1318,47 +1210,34 @@ private:
         SDL_Rect toolbar = {0, 0, 1500, 90};
         fillRect(renderer_, toolbar, PANEL);
         drawLine(renderer_, 0, 89, 1500, 89, CYAN);
-
         const bool stopped = controller_.mode() == SimulationMode::Stopped;
         runButton_.draw(renderer_, controller_.mode() == SimulationMode::Running, true);
         pauseButton_.draw(renderer_, controller_.mode() == SimulationMode::Paused, !stopped);
         stepButton_.draw(renderer_, false, true);
         eventButton_.draw(renderer_, false, true);
         stopButton_.draw(renderer_, false, !stopped);
-
         drawText(renderer_, "PROJECT 8 - ALL LOGIC GATES", 680, 18, 3, WHITE);
         drawText(renderer_, "PROTEUS STYLE - SDL2 - C++14", 730, 54, 2, MUTED);
     }
-
     void drawRightPanel() {
         SDL_Rect panel = {1140, 105, 345, 720};
         fillRect(renderer_, panel, PANEL);
         drawRect(renderer_, panel, CYAN);
-
         drawText(renderer_, "SIMULATION", 1160, 122, 2, WHITE);
         drawText(renderer_, modeName(), 1160, 155, 2, modeColor());
-        drawText(renderer_, "TIME " + formatDouble(controller_.time(), 3) + " S",
-                 1160, 188, 2, CYAN);
-        drawText(renderer_, "EVENTS " + std::to_string(controller_.scheduler().size()),
-                 1160, 220, 2, WHITE);
+        drawText(renderer_, "TIME " + formatDouble(controller_.time(), 3) + " S",1160, 188, 2, CYAN);
+        drawText(renderer_, "EVENTS " + std::to_string(controller_.scheduler().size()),1160, 220, 2, WHITE);
         if (!controller_.scheduler().empty()) {
-            drawText(renderer_, "NEXT " + formatDouble(controller_.scheduler().nextEventTime(), 3),
-                     1160, 250, 2, PURPLE);
+            drawText(renderer_, "NEXT " + formatDouble(controller_.scheduler().nextEventTime(), 3),1160, 250, 2, PURPLE);
         } else {
             drawText(renderer_, "NEXT NONE", 1160, 250, 2, MUTED);
         }
-
         const LogicGate& gate = circuit_.selectedGate();
         drawText(renderer_, "SELECTED GATE", 1160, 300, 2, WHITE);
         drawText(renderer_, gateName(gate.type()), 1160, 333, 3, SELECTED);
-        drawText(renderer_, "DELAY " + formatDouble(gate.delay(), 2) + " S",
-                 1160, 372, 2, MUTED);
-        drawText(renderer_, "OUTPUT " + logicShort(gate.output()),
-                 1160, 404, 2,
-                 logicColor(gate.output(), controller_.mode() == SimulationMode::Stopped));
-
+        drawText(renderer_, "DELAY " + formatDouble(gate.delay(), 2) + " S", 1160, 372, 2, MUTED);
+        drawText(renderer_, "OUTPUT " + logicShort(gate.output()),1160, 404, 2,logicColor(gate.output(), controller_.mode() == SimulationMode::Stopped));
         drawTruthTable(gate.type(), 1160, 450);
-
         drawText(renderer_, "WIRE COLORS", 1160, 628, 2, WHITE);
         drawThickLine(renderer_, 1160, 662, 1210, 662, RED, 6);
         drawText(renderer_, "HIGH", 1230, 655, 2, RED);
@@ -1368,7 +1247,6 @@ private:
         drawText(renderer_, "FLOAT", 1230, 721, 2, YELLOW);
         drawThickLine(renderer_, 1160, 761, 1210, 761, DEFAULT_WIRE, 6);
         drawText(renderer_, "STOP", 1230, 754, 2, MUTED);
-
         drawText(renderer_, "EVENT LOG", 1160, 793, 2, WHITE);
         int y = 818;
         const std::vector<std::string>& lines = log_.lines();
@@ -1378,7 +1256,6 @@ private:
             y += 18;
         }
     }
-
     void drawTruthTable(GateType type, int x, int y) {
         drawText(renderer_, "TRUTH TABLE", x, y, 2, WHITE);
         if (gateIsUnary(type)) {
@@ -1387,8 +1264,7 @@ private:
                 const LogicState aState = a ? LogicState::High : LogicState::Low;
                 const LogicState result = evaluateGate(type, aState, LogicState::Low);
                 drawText(renderer_,
-                         std::to_string(a) + "  " + logicShort(result),
-                         x, y + 60 + a * 28, 2, WHITE);
+                         std::to_string(a) + "  " + logicShort(result),x, y + 60 + a * 28, 2, WHITE);
             }
         } else {
             drawText(renderer_, "A B  Y", x, y + 30, 2, MUTED);
@@ -1407,24 +1283,18 @@ private:
             }
         }
     }
-
     void drawBottomHelp() {
         SDL_Rect footer = {0, 835, 1500, 45};
         fillRect(renderer_, footer, PANEL);
         drawLine(renderer_, 0, 835, 1500, 835, CYAN);
-        drawText(renderer_,
-                 "LEFT CLICK A/B: TOGGLE  RIGHT CLICK: FLOAT  A/B KEYS  1/2 CYCLE  SPACE RUN  S STEP  N NEXT  R STOP",
-                 20, 850, 2, MUTED);
+        drawText(renderer_, "LEFT CLICK A/B: TOGGLE  RIGHT CLICK: FLOAT  A/B KEYS  1/2 CYCLE  SPACE RUN  S STEP  N NEXT  R STOP", 20, 850, 2, MUTED);
     }
-
     SDL_Window* window_;
     SDL_Renderer* renderer_;
-    bool keepRunning_;
-
+    bool keepRunning_;چ
     SimulationController controller_;
     SimulationLog log_;
     LogicGateCircuit circuit_;
-
     UiButton runButton_;
     UiButton pauseButton_;
     UiButton stepButton_;
@@ -1432,8 +1302,7 @@ private:
     UiButton stopButton_;
 };
 
-} // namespace project8
-
+} 
 int main(int argc, char** argv) {
     (void)argc;
     (void)argv;
