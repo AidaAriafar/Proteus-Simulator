@@ -1,9 +1,9 @@
 #ifndef COMPONENT_LIBRARY_H
 #define COMPONENT_LIBRARY_H
 
-
 #include "../core/Component.h"
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -18,22 +18,28 @@ private:
 
 public:
 
-
     ComponentLibrary();
 
 
     void registerComponent(
-        std::string name
+        const std::string& name
     );
 
 
-    std::vector<std::string> getComponents();
+    std::vector<std::string> getComponents() const;
 
 
     bool exists(
-        std::string name
-    );
+        const std::string& name
+    ) const;
 
+
+    std::unique_ptr<Component> createComponent(
+        const std::string& name,
+        int id,
+        float x,
+        float y
+    ) const;
 
 };
 

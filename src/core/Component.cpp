@@ -17,10 +17,6 @@ Component::Component(
 
 
 
-Component::~Component()
-{
-
-}
 
 
 
