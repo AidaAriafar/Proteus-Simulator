@@ -297,3 +297,22 @@ void ComponentManager::syncSelectionFlags()
         component->setSelected(selectedIDs.count(component->getID()) != 0);
     }
 }
+
+std::vector<Component*> ComponentManager::getAll()
+{
+    return allMutable();
+}
+
+std::vector<const Component*> ComponentManager::getAll() const
+{
+    return allConst();
+}
+
+void ComponentManager::clear()
+{
+    ownedComponents.clear();
+    externalComponents.clear();
+    selectedIDs.clear();
+    dragStartPositions.clear();
+    nextID = 1;
+}

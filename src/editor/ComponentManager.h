@@ -50,6 +50,11 @@ public:
     const Component* getComponent(int id) const;
     std::size_t componentCount() const;
 
+    // Public iteration/reset support for wiring, simulation and persistence.
+    std::vector<Component*> getAll();
+    std::vector<const Component*> getAll() const;
+    void clear();
+
     void beginDrag();
     void dragSelected(float deltaX, float deltaY);
     void endDrag();
