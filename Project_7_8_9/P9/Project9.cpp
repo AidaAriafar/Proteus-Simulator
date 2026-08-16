@@ -1,4 +1,3 @@
-//Project 9 - Measurement Instruments + D Flip-Flop
 
 #include <SDL.h>
 #include <algorithm>
@@ -1113,7 +1112,7 @@ private:
     }
 };
 
-}  
+}
 int main(int argc, char** argv) {
     (void)argc;
     (void)argv;

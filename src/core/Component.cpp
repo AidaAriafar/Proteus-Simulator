@@ -76,10 +76,6 @@ Component::Component(
 }
 
 
-
-
-
-
 std::vector<PropertyDescriptor> Component::getProperties() const
 {
     return {
@@ -89,7 +85,6 @@ std::vector<PropertyDescriptor> Component::getProperties() const
         {"mirror_v", "Mirror Vertical", PropertyKind::Boolean, mirroredVertically ? "true" : "false", "", true, {}}
     };
 }
-
 
 
 bool Component::setProperty(
@@ -142,12 +137,10 @@ bool Component::setProperty(
 }
 
 
-
 int Component::getID() const
 {
     return id;
 }
-
 
 
 float Component::getX() const
@@ -156,12 +149,10 @@ float Component::getX() const
 }
 
 
-
 float Component::getY() const
 {
     return y;
 }
-
 
 
 void Component::setPosition(
@@ -175,7 +166,6 @@ void Component::setPosition(
 }
 
 
-
 void Component::moveBy(
     float deltaX,
     float deltaY
@@ -185,12 +175,10 @@ void Component::moveBy(
 }
 
 
-
 Rect Component::getBoundingBox() const
 {
     return {x - width / 2.0f, y - height / 2.0f, width, height};
 }
-
 
 
 bool Component::contains(
@@ -202,7 +190,6 @@ bool Component::contains(
     return pointX >= box.x && pointX <= box.x + box.width &&
            pointY >= box.y && pointY <= box.y + box.height;
 }
-
 
 
 bool Component::intersects(
@@ -217,12 +204,10 @@ bool Component::intersects(
 }
 
 
-
 std::string Component::getLabel() const
 {
     return label;
 }
-
 
 
 void Component::setLabel(
@@ -233,12 +218,10 @@ void Component::setLabel(
 }
 
 
-
 Rotation Component::getRotation() const
 {
     return rotation;
 }
-
 
 
 void Component::setRotation(
@@ -250,7 +233,6 @@ void Component::setRotation(
 }
 
 
-
 void Component::rotateClockwise()
 {
     if(rotation == Rotation::DEG_0) setRotation(Rotation::DEG_90);
@@ -260,13 +242,11 @@ void Component::rotateClockwise()
 }
 
 
-
 void Component::mirrorHorizontal()
 {
     mirroredHorizontally = !mirroredHorizontally;
     updatePinTransforms();
 }
-
 
 
 void Component::mirrorVertical()
@@ -276,12 +256,10 @@ void Component::mirrorVertical()
 }
 
 
-
 bool Component::isMirroredHorizontally() const
 {
     return mirroredHorizontally;
 }
-
 
 
 bool Component::isMirroredVertically() const
@@ -290,19 +268,16 @@ bool Component::isMirroredVertically() const
 }
 
 
-
 ComponentCategory Component::getCategory() const
 {
     return category;
 }
 
 
-
 bool Component::isSelected() const
 {
     return selected;
 }
-
 
 
 void Component::setSelected(
@@ -313,7 +288,6 @@ void Component::setSelected(
 }
 
 
-
 void Component::addPin(Pin pin)
 {
     pin.setLocalPosition(pin.getX() - x, pin.getY() - y);
@@ -322,19 +296,16 @@ void Component::addPin(Pin pin)
 }
 
 
-
 std::vector<Pin>& Component::getPins()
 {
     return pins;
 }
 
 
-
 const std::vector<Pin>& Component::getPins() const
 {
     return pins;
 }
-
 
 
 void Component::updatePinTransforms()

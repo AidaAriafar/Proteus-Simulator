@@ -1,8 +1,6 @@
 #ifndef APP_FONT_H
 #define APP_FONT_H
 
-// Minimal built-in 5x7 pixel font so the application has no dependency on
-// SDL_ttf. Lowercase letters are rendered with the uppercase glyphs.
 
 #include <SDL.h>
 

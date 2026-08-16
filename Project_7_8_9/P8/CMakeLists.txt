@@ -7,7 +7,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FetchContent)
 
-# Download SDL2 from a release archive; Git is not required.
 set(SDL_TEST OFF CACHE BOOL "" FORCE)
 set(SDL_SHARED ON CACHE BOOL "" FORCE)
 set(SDL_STATIC OFF CACHE BOOL "" FORCE)
@@ -22,7 +21,6 @@ FetchContent_MakeAvailable(SDL2)
 add_executable(Project8 Project8.cpp)
 target_link_libraries(Project8 PRIVATE SDL2::SDL2main SDL2::SDL2)
 
-# Copy SDL2.dll beside Project8.exe after each Windows build.
 if(WIN32)
     add_custom_command(TARGET Project8 POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different

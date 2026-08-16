@@ -186,8 +186,6 @@ public:
     );
 
 
-    // Pin management
-
     void addPin(Pin pin);
 
 

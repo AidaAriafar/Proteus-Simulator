@@ -1,5 +1,4 @@
 
-//  Project 7: Ideal ADC and DAC with SDL2 graphics
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -1461,7 +1460,7 @@ private:
     }
 };
 
-} 
+}
 
 int main() {
     try {

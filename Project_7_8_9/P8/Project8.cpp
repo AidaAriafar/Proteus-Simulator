@@ -1,4 +1,3 @@
-// Project 8 - Proteus-style Logic Gate Simulation Control
 
 #include <SDL.h>
 #include <algorithm>
@@ -658,7 +657,6 @@ private:
         const int x2 = bounds_.x + bounds_.w - 12;
         const int y2 = bounds_.y + bounds_.h / 2;
 
-        // Fill by horizontal interpolation.
         for (int y = y0; y <= y1; ++y) {
             const double normalized = std::abs(
                 static_cast<double>(y - y2)) /
@@ -717,7 +715,6 @@ private:
         const int right = bounds_.x + bounds_.w - 12;
         const int centerY = bounds_.y + bounds_.h / 2;
 
-        // Approximate filled OR shape with scanlines between two curves.
         for (int y = top; y <= bottom; ++y) {
             const double t = static_cast<double>(y - top) /
                              static_cast<double>(bottom - top);
@@ -1291,7 +1288,7 @@ private:
     }
     SDL_Window* window_;
     SDL_Renderer* renderer_;
-    bool keepRunning_;چ
+    bool keepRunning_;
     SimulationController controller_;
     SimulationLog log_;
     LogicGateCircuit circuit_;
@@ -1302,7 +1299,7 @@ private:
     UiButton stopButton_;
 };
 
-} 
+}
 int main(int argc, char** argv) {
     (void)argc;
     (void)argv;

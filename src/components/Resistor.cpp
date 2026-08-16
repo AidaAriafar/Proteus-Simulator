@@ -6,7 +6,6 @@
 #include <stdexcept>
 
 
-
 Resistor::Resistor(
     int id,
     float x,
@@ -38,8 +37,6 @@ Component(id, x, y)
     );
 
 
-    // Second terminal
-
     addPin(
         Pin(
             2,
@@ -53,7 +50,6 @@ Component(id, x, y)
     );
 
 }
-
 
 
 void Resistor::draw()
@@ -70,12 +66,10 @@ void Resistor::draw()
 }
 
 
-
 std::string Resistor::getType() const
 {
     return "Resistor";
 }
-
 
 
 std::unique_ptr<Component> Resistor::clone(
@@ -91,14 +85,12 @@ std::unique_ptr<Component> Resistor::clone(
 }
 
 
-
 std::vector<PropertyDescriptor> Resistor::getProperties() const
 {
     auto properties = Component::getProperties();
     properties.push_back({"resistance", "Resistance", PropertyKind::Number, std::to_string(resistance), "ohm", true, {}});
     return properties;
 }
-
 
 
 bool Resistor::setProperty(
@@ -129,7 +121,6 @@ bool Resistor::setProperty(
 
     return Component::setProperty(key, value, error);
 }
-
 
 
 void Resistor::setResistance(

@@ -28,12 +28,10 @@ Pin::Pin(
 }
 
 
-
 int Pin::getID() const
 {
     return id;
 }
-
 
 
 std::string Pin::getName() const
@@ -42,12 +40,10 @@ std::string Pin::getName() const
 }
 
 
-
 float Pin::getX() const
 {
     return x;
 }
-
 
 
 float Pin::getY() const
@@ -56,12 +52,10 @@ float Pin::getY() const
 }
 
 
-
 float Pin::getLocalX() const
 {
     return localX;
 }
-
 
 
 float Pin::getLocalY() const
@@ -70,12 +64,10 @@ float Pin::getLocalY() const
 }
 
 
-
 PinType Pin::getType() const
 {
     return type;
 }
-
 
 
 PinDirection Pin::getDirection() const
@@ -84,12 +76,10 @@ PinDirection Pin::getDirection() const
 }
 
 
-
 PinDirection Pin::getBaseDirection() const
 {
     return baseDirection;
 }
-
 
 
 bool Pin::isRequired() const
@@ -98,12 +88,10 @@ bool Pin::isRequired() const
 }
 
 
-
 bool Pin::isConnected() const
 {
     return connected;
 }
-
 
 
 void Pin::setPosition(
@@ -116,7 +104,6 @@ void Pin::setPosition(
 }
 
 
-
 void Pin::setLocalPosition(
     float newLocalX,
     float newLocalY
@@ -127,7 +114,6 @@ void Pin::setLocalPosition(
 }
 
 
-
 void Pin::setDirection(
     PinDirection newDirection
 )
@@ -136,12 +122,10 @@ void Pin::setDirection(
 }
 
 
-
 void Pin::connect()
 {
     connected=true;
 }
-
 
 
 void Pin::disconnect()

@@ -25,7 +25,6 @@ std::string escape(const std::string& text)
     return out;
 }
 
-// --- extremely small JSON reader (objects, arrays, strings, numbers) -----
 struct JValue
 {
     enum class Type
@@ -145,7 +144,7 @@ struct JParser
     {
         JValue value;
         value.type = JValue::Type::String;
-        ++pos; // opening quote
+        ++pos;
         while (pos < source.size() && source[pos] != '"')
         {
             if (source[pos] == '\\' && pos + 1 < source.size())
@@ -170,7 +169,7 @@ struct JParser
         {
             failed = true;
         }
-        ++pos; // closing quote
+        ++pos;
         return value;
     }
 
@@ -200,7 +199,7 @@ struct JParser
     {
         JValue value;
         value.type = JValue::Type::Array;
-        ++pos; // [
+        ++pos;
         skip();
         if (consume(']'))
         {
@@ -226,7 +225,7 @@ struct JParser
     {
         JValue value;
         value.type = JValue::Type::Object;
-        ++pos; // {
+        ++pos;
         skip();
         if (consume('}'))
         {

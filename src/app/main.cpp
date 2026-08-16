@@ -1,10 +1,3 @@
-// ProteusSimulator - unified application entry point.
-//
-// Integrates: startup menu + canvas environment (subprojects 1, 2),
-// component library panel (3), editing & interaction (4), the wiring
-// system (5), base + advanced component libraries (6, 7), simulation
-// control (8), measurement tools (9), file management / undo / export
-// (10) and the DRC + simulation log (11).
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -74,7 +67,7 @@ enum class PromptKind
     None,
     SaveAs,
     Open,
-    NewCustom // subproject 1: manual canvas size entry, e.g. "1600x1200"
+    NewCustom
 };
 
 struct UIButton
@@ -105,47 +98,39 @@ struct App
 
     Camera camera;
 
-    // library panel state
     std::string searchText;
     bool searchFocused = false;
-    std::string pendingPlacement; // library item to place on next canvas click
+    std::string pendingPlacement;
     int libraryScroll = 0;
-    bool groupOpen[4] = {true, true, true, true}; // subproject 3: tree view expand/collapse
-    std::vector<std::string> activeList;          // subproject 3: active components list
-    std::unique_ptr<Component> previewInstance;   // subproject 3: schematic preview
+    bool groupOpen[4] = {true, true, true, true};
+    std::vector<std::string> activeList;
+    std::unique_ptr<Component> previewInstance;
     std::string previewName;
 
-    // selection / drag state
     bool draggingComponents = false;
     bool rectSelecting = false;
     float dragStartWX = 0, dragStartWY = 0;
     float rectWX = 0, rectWY = 0;
 
-    // panning
     bool panning = false;
     int panStartX = 0, panStartY = 0;
     float panOrigX = 0, panOrigY = 0;
 
-    // wire drafting
     bool wireDraft = false;
     int wireFromComp = -1, wireFromPin = -1;
     int hoverPinComp = -1, hoverPinIdx = -1;
 
-    // probe / scope
     int probedWireID = -1;
-    std::deque<std::pair<float, float>> scopeSamples; // (sim time s, volts)
+    std::deque<std::pair<float, float>> scopeSamples;
 
-    // properties modal
     bool propsOpen = false;
     int propsRowEditing = -1;
     std::string propsEditText;
     std::string propsError;
 
-    // text prompt (save as / open path)
     PromptKind prompt = PromptKind::None;
     std::string promptText;
 
-    // undo / redo snapshots (subproject 10: large history)
     std::vector<std::string> undoStack;
     std::vector<std::string> redoStack;
 
@@ -155,7 +140,7 @@ struct App
     Uint32 toastUntil = 0;
 
     bool showLog = true;
-    int heldButtonComponent = -1; // push button held during simulation
+    int heldButtonComponent = -1;
 
     bool running = true;
     float mouseWX = 0, mouseWY = 0;
@@ -257,7 +242,6 @@ std::vector<const Component*> constAll(App& app)
     return static_cast<const ComponentManager&>(app.manager).getAll();
 }
 
-// ---------------------------------------------------------------- drawing --
 void setColor(SDL_Renderer* r, Uint8 red, Uint8 green, Uint8 blue, Uint8 alpha = 255)
 {
     SDL_SetRenderDrawColor(r, red, green, blue, alpha);
@@ -290,7 +274,6 @@ void drawThickLine(SDL_Renderer* r, int x1, int y1, int x2, int y2, int thicknes
 void drawGridAndPage(App& app, SDL_Rect view)
 {
     SDL_RenderSetClipRect(app.renderer, &view);
-    // page background
     const int px = app.camera.screenX(0), py = app.camera.screenY(0);
     const int pw = static_cast<int>(app.canvas.widthUnits * app.camera.zoom);
     const int ph = static_cast<int>(app.canvas.heightUnits * app.camera.zoom);
@@ -298,7 +281,6 @@ void drawGridAndPage(App& app, SDL_Rect view)
     setColor(app.renderer, 250, 250, 246);
     SDL_RenderFillRect(app.renderer, &page);
 
-    // grid lines (subproject 2)
     setColor(app.renderer, 222, 226, 232);
     const float step = 20.0f;
     for (float gx = 0; gx <= app.canvas.widthUnits + 0.1f; gx += step)
@@ -319,13 +301,13 @@ void drawSevenSegment(App& app, const SevenSegmentDisplay& display, SDL_Rect box
     const int sw = box.w / 2, sh = box.h - 12;
     struct Seg { int x1, y1, x2, y2; };
     const Seg segments[7] = {
-        {sx, sy, sx + sw, sy},                       // a top
-        {sx + sw, sy, sx + sw, sy + sh / 2},          // b top-right
-        {sx + sw, sy + sh / 2, sx + sw, sy + sh},     // c bottom-right
-        {sx, sy + sh, sx + sw, sy + sh},              // d bottom
-        {sx, sy + sh / 2, sx, sy + sh},               // e bottom-left
-        {sx, sy, sx, sy + sh / 2},                    // f top-left
-        {sx, sy + sh / 2, sx + sw, sy + sh / 2},      // g middle
+        {sx, sy, sx + sw, sy},
+        {sx + sw, sy, sx + sw, sy + sh / 2},
+        {sx + sw, sy + sh / 2, sx + sw, sy + sh},
+        {sx, sy + sh, sx + sw, sy + sh},
+        {sx, sy + sh / 2, sx, sy + sh},
+        {sx, sy, sx, sy + sh / 2},
+        {sx, sy + sh / 2, sx + sw, sy + sh / 2},
     };
     for (int index = 0; index < 7; ++index)
     {
@@ -341,11 +323,6 @@ void drawSevenSegment(App& app, const SevenSegmentDisplay& display, SDL_Rect box
     }
 }
 
-// Symbol painter (subprojects 4 + 6 + 7: element shapes / schematic symbols).
-// Local symbol geometry is expressed relative to the component centre and is
-// pushed through the same mirror-then-rotate transform used by
-// Component::updatePinTransforms, so symbols stay aligned with their pins
-// under any rotation/mirroring.
 struct SymbolPainter
 {
     SDL_Renderer* renderer;
@@ -384,7 +361,6 @@ struct SymbolPainter
         }
     }
 
-    // Circle centred at local (cu, cv); rotation-invariant so plain segments.
     void circle(float cu, float cv, float radius) const
     {
         int cx, cy;
@@ -416,8 +392,6 @@ struct SymbolPainter
     }
 };
 
-// Draws the true schematic symbol of a component; used both on the canvas
-// and inside the library preview box.
 void drawSymbolShape(App& app, const Component* component)
 {
     SymbolPainter paint{app.renderer, app.camera, component};
@@ -426,7 +400,6 @@ void drawSymbolShape(App& app, const Component* component)
 
     if (type == "Resistor")
     {
-        // leads + IEEE zig-zag
         paint.line(-30, 0, -18, 0);
         paint.poly({{-18, 0}, {-14, -8}, {-7, 8}, {0, -8}, {7, 8}, {14, -8}, {18, 0}});
         paint.line(18, 0, 30, 0);
@@ -452,16 +425,16 @@ void drawSymbolShape(App& app, const Component* component)
     {
         paint.line(0, -25, 0, -14);
         paint.circle(0, 0, 14);
-        paint.line(-4, -6, 4, -6);   // plus
+        paint.line(-4, -6, 4, -6);
         paint.line(0, -10, 0, -2);
-        paint.line(-4, 6, 4, 6);     // minus
+        paint.line(-4, 6, 4, 6);
         paint.line(0, 14, 0, 25);
     }
     else if (type == "Battery")
     {
         paint.line(0, -25, 0, -4);
-        paint.line(-12, -4, 12, -4, 3); // long plate (+)
-        paint.line(-6, 4, 6, 4, 3);     // short plate (-)
+        paint.line(-12, -4, 12, -4, 3);
+        paint.line(-6, 4, 6, 4, 3);
         paint.line(0, 4, 0, 25);
         paint.text(18, -8, "+");
     }
@@ -469,7 +442,6 @@ void drawSymbolShape(App& app, const Component* component)
     {
         paint.line(-35, 0, -24, 0);
         paint.poly({{-24, -16}, {24, -16}, {24, 16}, {-24, 16}, {-24, -16}});
-        // square wave icon (subproject 6: clock generator)
         paint.poly({{-16, 8}, {-8, 8}, {-8, -8}, {0, -8}, {0, 8}, {8, 8}, {8, -8}, {16, -8}});
         paint.line(24, 0, 35, 0);
     }
@@ -491,10 +463,9 @@ void drawSymbolShape(App& app, const Component* component)
             paint.dot(0, 0, 10);
             setColor(app.renderer, 40, 46, 56);
         }
-        paint.poly({{-8, -9}, {-8, 9}, {8, 0}, {-8, -9}}); // anode triangle
-        paint.line(8, -9, 8, 9, 3);                        // cathode bar
+        paint.poly({{-8, -9}, {-8, 9}, {8, 0}, {-8, -9}});
+        paint.line(8, -9, 8, 9, 3);
         paint.line(8, 0, 20, 0);
-        // emission arrows
         paint.line(2, -10, 8, -18);
         paint.line(8, -18, 5, -17);
         paint.line(8, -18, 7, -15);
@@ -528,15 +499,14 @@ void drawSymbolShape(App& app, const Component* component)
         paint.dot(-8, 0, 2.5f);
         paint.dot(8, 0, 2.5f);
         const float gap = pressed ? 0.0f : -7.0f;
-        paint.line(-10, gap - 4, 10, gap - 4, 3); // bridge
-        paint.line(0, gap - 4, 0, gap - 12);      // actuator stem
+        paint.line(-10, gap - 4, 10, gap - 4, 3);
+        paint.line(0, gap - 4, 0, gap - 12);
         paint.line(-5, gap - 12, 5, gap - 12);
     }
     else if (const auto* gate = dynamic_cast<const LogicGate*>(component))
     {
         const GateKind kind = gate->getKind();
         const bool inverted = kind == GateKind::NOT || kind == GateKind::NAND;
-        // input leads
         if (kind == GateKind::NOT)
         {
             paint.line(-30, 0, -16, 0);
@@ -552,15 +522,14 @@ void drawSymbolShape(App& app, const Component* component)
         }
         else if (kind == GateKind::AND || kind == GateKind::NAND)
         {
-            // D shape: flat back + semicircular nose
             paint.line(-14, -15, -14, 15);
             paint.line(-14, -15, 2, -15);
             paint.line(-14, 15, 2, 15);
             paint.poly({{2, -15}, {9, -12}, {14, -6}, {16, 0}, {14, 6}, {9, 12}, {2, 15}});
         }
-        else // OR / XOR
+        else
         {
-            paint.poly({{-14, -15}, {-10, -8}, {-9, 0}, {-10, 8}, {-14, 15}}); // curved back
+            paint.poly({{-14, -15}, {-10, -8}, {-9, 0}, {-10, 8}, {-14, 15}});
             paint.poly({{-14, -15}, {0, -14}, {9, -9}, {16, 0}});
             paint.poly({{-14, 15}, {0, 14}, {9, 9}, {16, 0}});
             if (kind == GateKind::XOR)
@@ -585,7 +554,7 @@ void drawSymbolShape(App& app, const Component* component)
         paint.line(22, -15, 35, -15);
         paint.line(22, 15, 35, 15);
         paint.poly({{-22, -26}, {22, -26}, {22, 26}, {-22, 26}, {-22, -26}});
-        paint.poly({{-22, 10}, {-15, 15}, {-22, 20}}); // clock triangle
+        paint.poly({{-22, 10}, {-15, 15}, {-22, 20}});
         paint.text(-14, -15, "D");
         paint.text(14, -15, "Q");
         paint.text(13, 15, "-Q");
@@ -593,7 +562,7 @@ void drawSymbolShape(App& app, const Component* component)
     else if (type == "ADC" || type == "DAC")
     {
         paint.poly({{-30, -28}, {30, -28}, {30, 28}, {-30, 28}, {-30, -28}});
-        paint.line(-30, 28, 30, -28); // analog/digital divider
+        paint.line(-30, 28, 30, -28);
         paint.text(0, 0, type);
         if (type == "ADC")
         {
@@ -619,7 +588,6 @@ void drawSymbolShape(App& app, const Component* component)
     }
     else
     {
-        // fallback: outlined body box
         const Rect bounds = component->getBoundingBox();
         SDL_Rect box = {
             app.camera.screenX(bounds.x), app.camera.screenY(bounds.y),
@@ -638,7 +606,6 @@ void drawComponent(App& app, const Component* component)
         static_cast<int>(bounds.width * app.camera.zoom),
         static_cast<int>(bounds.height * app.camera.zoom)};
 
-    // selection highlight behind the symbol (subproject 4)
     if (component->isSelected())
     {
         setColor(app.renderer, 205, 226, 255, 140);
@@ -660,7 +627,6 @@ void drawComponent(App& app, const Component* component)
         drawSymbolShape(app, component);
     }
 
-    // meters show their live reading
     std::string extra;
     if (const auto* voltmeter = dynamic_cast<const Voltmeter*>(component))
     {
@@ -677,7 +643,6 @@ void drawComponent(App& app, const Component* component)
         extra = stream.str();
     }
 
-    // label
     setColor(app.renderer, 40, 44, 52);
     const std::string label = component->getLabel();
     appfont::drawText(app.renderer, label, box.x + (box.w - appfont::textWidth(label)) / 2, box.y - 12);
@@ -687,7 +652,6 @@ void drawComponent(App& app, const Component* component)
         appfont::drawText(app.renderer, extra, box.x + (box.w - appfont::textWidth(extra)) / 2, box.y + box.h + 3);
     }
 
-    // pins (green when connected; orange halo when hovered in wire mode)
     for (std::size_t index = 0; index < component->getPins().size(); ++index)
     {
         const Pin& pin = component->getPins()[index];
@@ -710,7 +674,6 @@ void drawWires(App& app)
     const auto componentsConst = constAll(app);
     for (const auto& wire : app.wires.getWires())
     {
-        // colour by simulation value (subproject 8)
         Uint8 red = 70, green = 74, blue = 82;
         if (app.sim.getState() != SimState::Stopped)
         {
@@ -754,13 +717,11 @@ void drawWires(App& app)
             }
         }
     }
-    // junction dots (subproject 5)
     setColor(app.renderer, 40, 44, 52);
     for (const auto& dot : app.wires.junctionDots())
     {
         fillCircle(app.renderer, app.camera.screenX(dot.x), app.camera.screenY(dot.y), 4);
     }
-    // wire draft preview
     if (app.wireDraft)
     {
         const Component* from = app.manager.getComponent(app.wireFromComp);
@@ -781,7 +742,6 @@ void drawWires(App& app)
     }
 }
 
-// ---------------------------------------------------------------- panels ---
 std::vector<UIButton> toolbarButtons(App& app)
 {
     std::vector<UIButton> buttons;
@@ -812,17 +772,17 @@ std::vector<UIButton> toolbarButtons(App& app)
 
 enum class LibraryRowKind
 {
-    Header,     // collapsible tree-view category (subproject 3)
-    Item,       // library component; clicking arms placement, [+] adds to active list
-    ActiveItem, // entry of the active components list; [x] removes it
-    Message     // informational row ("no matching components")
+    Header,
+    Item,
+    ActiveItem,
+    Message
 };
 
 struct LibraryRow
 {
     SDL_Rect rect;
     LibraryRowKind kind;
-    std::string itemName;    // component name or header group index as text
+    std::string itemName;
     std::string displayText;
 };
 
@@ -845,7 +805,6 @@ std::vector<LibraryRow> libraryRows(App& app)
     const std::string lowered = toLowerCopy(app.searchText);
     const bool searching = !lowered.empty();
 
-    // active components list (subproject 3.4) shown on top for quick access
     if (!app.activeList.empty())
     {
         rows.push_back({{6, y, kLibraryWidth - 12, 18}, LibraryRowKind::Message, "", "ACTIVE COMPONENTS"});
@@ -866,13 +825,11 @@ std::vector<LibraryRow> libraryRows(App& app)
     std::size_t matches = 0;
     for (int group = 0; group < 4; ++group)
     {
-        // real-time search also matches the category name (subproject 3.2)
         const bool categoryMatches = searching &&
             toLowerCopy(headers[group]).find(lowered) != std::string::npos;
         rows.push_back({{6, y, kLibraryWidth - 12, 18}, LibraryRowKind::Header,
                         std::to_string(group), headers[group]});
         y += 20;
-        // while searching, matching groups are always expanded so results show
         if (!app.groupOpen[group] && !searching)
         {
             continue;
@@ -908,7 +865,6 @@ void drawLibraryPanel(App& app)
     setColor(app.renderer, 32, 36, 44);
     SDL_RenderFillRect(app.renderer, &panel);
 
-    // search box (subproject 3)
     SDL_Rect search = {6, kToolbarHeight + 6, kLibraryWidth - 12, 22};
     setColor(app.renderer, app.searchFocused ? 255 : 210, app.searchFocused ? 255 : 214, app.searchFocused ? 255 : 220);
     SDL_RenderFillRect(app.renderer, &search);
@@ -947,7 +903,7 @@ void drawLibraryPanel(App& app)
             setColor(app.renderer, 240, 110, 110);
             appfont::drawText(app.renderer, "X", row.rect.x + row.rect.w - 12, row.rect.y + 5);
         }
-        else // Item
+        else
         {
             if (row.itemName == app.pendingPlacement)
             {
@@ -963,7 +919,6 @@ void drawLibraryPanel(App& app)
     }
     SDL_RenderSetClipRect(app.renderer, nullptr);
 
-    // schematic preview box (subproject 3.3)
     SDL_Rect preview = {6, app.windowHeight - kStatusHeight - previewHeight + 4,
                         kLibraryWidth - 12, previewHeight - 10};
     setColor(app.renderer, 250, 250, 246);
@@ -981,7 +936,6 @@ void drawLibraryPanel(App& app)
         }
         if (app.previewInstance)
         {
-            // borrow the camera to render the symbol centred in the box
             const Camera saved = app.camera;
             app.camera.zoom = 0.9f;
             app.camera.offsetX = static_cast<float>(preview.x + preview.w / 2);
@@ -1196,7 +1150,6 @@ void drawPrompt(App& app)
     appfont::drawText(app.renderer, app.promptText + "_", bar.x + 8, bar.y + 26);
 }
 
-// ---------------------------------------------------------------- actions --
 void runDRC(App& app)
 {
     const auto components = constAll(app);
@@ -1320,7 +1273,6 @@ void newProject(App& app, const std::string& pageSize)
     }
     else if (pageSize.find('x') != std::string::npos)
     {
-        // custom size typed by the user, e.g. "1600x1200" (subproject 1)
         const std::size_t split = pageSize.find('x');
         const float customWidth = std::strtof(pageSize.substr(0, split).c_str(), nullptr);
         const float customHeight = std::strtof(pageSize.substr(split + 1).c_str(), nullptr);
@@ -1388,7 +1340,6 @@ void handleToolbarClick(App& app, const std::string& id)
     else if (id == "menu") { app.screen = Screen::Startup; app.sim.stop(app.manager.getAll()); }
 }
 
-// canvas interactions (subprojects 4 + 5 + 8)
 void canvasMouseDown(App& app, const SDL_MouseButtonEvent& event)
 {
     const float wx = app.camera.worldX(event.x);
@@ -1408,7 +1359,6 @@ void canvasMouseDown(App& app, const SDL_MouseButtonEvent& event)
         return;
     }
 
-    // right click deletes what is under the cursor (subproject 4)
     if (event.button == SDL_BUTTON_RIGHT)
     {
         if (app.manager.selectAt(wx, wy))
@@ -1429,7 +1379,6 @@ void canvasMouseDown(App& app, const SDL_MouseButtonEvent& event)
         return;
     }
 
-    // pending placement from the library (subproject 3 -> 4)
     if (!app.pendingPlacement.empty())
     {
         pushUndo(app);
@@ -1461,7 +1410,6 @@ void canvasMouseDown(App& app, const SDL_MouseButtonEvent& event)
             }
             return;
         }
-        // finish a draft onto an existing wire -> junction dot (subproject 5)
         if (app.wireDraft)
         {
             WPoint snapped;
@@ -1478,8 +1426,6 @@ void canvasMouseDown(App& app, const SDL_MouseButtonEvent& event)
         return;
     }
 
-    // SELECT tool. While the simulation runs, clicks interact with the
-    // circuit instead of editing it (subproject 8).
     if (app.sim.getState() == SimState::Running)
     {
         for (Component* component : app.manager.getAll())
@@ -1509,7 +1455,6 @@ void canvasMouseDown(App& app, const SDL_MouseButtonEvent& event)
         app.manager.beginDrag();
         return;
     }
-    // wire selection (subproject 5)
     app.wires.selectWireAt(wx, wy, 6.0f / app.camera.zoom, false);
     bool anyWire = false;
     for (const auto& wire : app.wires.getWires())
@@ -1763,7 +1708,6 @@ void editorEvent(App& app, const SDL_Event& event)
             app.rectWX = app.mouseWX;
             app.rectWY = app.mouseWY;
         }
-        // pin auto-detection hover (subproject 5)
         app.hoverPinComp = -1;
         app.hoverPinIdx = -1;
         if (app.tool == Tool::Wire)
@@ -1775,7 +1719,6 @@ void editorEvent(App& app, const SDL_Event& event)
     }
     case SDL_MOUSEWHEEL:
     {
-        // zoom around the cursor (subproject 2)
         int mouseX = 0, mouseY = 0;
         SDL_GetMouseState(&mouseX, &mouseY);
         const float before = app.camera.zoom;
@@ -1835,7 +1778,7 @@ void editorEvent(App& app, const SDL_Event& event)
             app.searchFocused = false;
             if (my >= app.windowHeight - kStatusHeight - 118)
             {
-                return; // preview box area
+                return;
             }
             for (const auto& row : libraryRows(app))
             {
@@ -1845,7 +1788,6 @@ void editorEvent(App& app, const SDL_Event& event)
                 }
                 if (row.kind == LibraryRowKind::Header)
                 {
-                    // tree view expand / collapse (subproject 3.1)
                     const int group = std::stoi(row.itemName);
                     app.groupOpen[group] = !app.groupOpen[group];
                 }
@@ -1853,7 +1795,6 @@ void editorEvent(App& app, const SDL_Event& event)
                 {
                     if (mx >= row.rect.x + row.rect.w - 16)
                     {
-                        // remove from active components list (subproject 3.4)
                         app.activeList.erase(
                             std::remove(app.activeList.begin(), app.activeList.end(), row.itemName),
                             app.activeList.end());
@@ -1872,7 +1813,6 @@ void editorEvent(App& app, const SDL_Event& event)
                 {
                     if (mx >= row.rect.x + row.rect.w - 16)
                     {
-                        // add to active components list (subproject 3.4)
                         if (std::find(app.activeList.begin(), app.activeList.end(), row.itemName) == app.activeList.end())
                         {
                             app.activeList.push_back(row.itemName);
@@ -1888,7 +1828,6 @@ void editorEvent(App& app, const SDL_Event& event)
             }
             return;
         }
-        // double click -> properties (subproject 4)
         if (event.button.button == SDL_BUTTON_LEFT && event.button.clicks >= 2)
         {
             const float wx = app.camera.worldX(mx);
@@ -1923,7 +1862,6 @@ void editorEvent(App& app, const SDL_Event& event)
     }
 }
 
-// ---------------------------------------------------------------- startup --
 std::vector<UIButton> startupButtons(App& app)
 {
     std::vector<UIButton> buttons;
@@ -2084,7 +2022,6 @@ void drawEditor(App& app)
     {
         drawComponent(app, component);
     }
-    // rectangle selection feedback
     if (app.rectSelecting)
     {
         setColor(app.renderer, 90, 140, 240, 90);
@@ -2095,7 +2032,6 @@ void drawEditor(App& app)
             std::abs(app.camera.screenY(app.rectWY) - app.camera.screenY(app.dragStartWY))};
         SDL_RenderDrawRect(app.renderer, &rect);
     }
-    // probe tooltip (subproject 9)
     if (app.sim.getState() != SimState::Stopped)
     {
         WPoint snapped;
@@ -2138,7 +2074,7 @@ void drawEditor(App& app)
     }
 }
 
-} // namespace
+}
 
 int main(int argc, char** argv)
 {
@@ -2164,7 +2100,6 @@ int main(int argc, char** argv)
     app.wires.setComponentLookup([&app](int id) { return static_cast<const ComponentManager&>(app.manager).getComponent(id); });
     app.manager.setComponentDeletedCallback([&app](int id) { app.wires.removeWiresForComponent(id); });
 
-    // Optional CLI: open a project directly, headless smoke test mode.
     bool smokeTest = false;
     bool galleryTest = false;
     for (int index = 1; index < argc; ++index)
@@ -2253,7 +2188,6 @@ int main(int argc, char** argv)
                 newProject(app, "A4");
                 if (galleryTest)
                 {
-                    // one of everything, some rotated/mirrored, for a visual check
                     const char* names[] = {
                         "GND", "DCVoltageSource", "Battery", "PulseSource",
                         "Resistor", "Capacitor", "Inductor",
@@ -2272,12 +2206,10 @@ int main(int argc, char** argv)
                         }
                         if (++column == 5) { column = 0; ++rowIndex; }
                     }
-                    app.wires.addWirePinToPin(2, 0, 5, 0); // DC -> resistor: wire render check
-                    // oscilloscope check: probe the clock output net and step
-                    // the engine so the panel shows a real 1 Hz square wave
-                    const int clockWire = app.wires.addWirePinToPin(4, 0, 6, 0); // clock OUT -> capacitor
+                    app.wires.addWirePinToPin(2, 0, 5, 0);
+                    const int clockWire = app.wires.addWirePinToPin(4, 0, 6, 0);
                     app.probedWireID = clockWire;
-                    app.pendingPlacement = "GateNAND";     // preview box check
+                    app.pendingPlacement = "GateNAND";
                     app.activeList = {"Resistor", "LED", "GateAND"};
                     app.sim.run();
                     for (int sample = 0; sample < 40; ++sample)
@@ -2304,7 +2236,6 @@ int main(int argc, char** argv)
             }
             if (galleryTest && smokeFrames == 10)
             {
-                // full-window screenshot: canvas symbols + library panel + preview
                 std::vector<unsigned char> pixels(static_cast<std::size_t>(app.windowWidth) * app.windowHeight * 4);
                 SDL_Rect full = {0, 0, app.windowWidth, app.windowHeight};
                 if (SDL_RenderReadPixels(app.renderer, &full, SDL_PIXELFORMAT_RGBA32,

@@ -7,7 +7,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FetchContent)
 
-# Build SDL2 automatically as part of this project.
 set(SDL_TEST OFF CACHE BOOL "" FORCE)
 set(SDL_TESTS OFF CACHE BOOL "" FORCE)
 set(SDL_SHARED ON CACHE BOOL "" FORCE)
@@ -24,7 +23,6 @@ FetchContent_MakeAvailable(SDL2)
 add_executable(untitled2 ../Project7.cpp)
 target_link_libraries(untitled2 PRIVATE SDL2::SDL2)
 
-# Copy SDL2.dll next to the executable on Windows.
 if(WIN32 AND TARGET SDL2::SDL2)
     add_custom_command(TARGET untitled2 POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different

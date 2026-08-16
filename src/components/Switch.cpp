@@ -5,7 +5,6 @@
 #include <iostream>
 
 
-
 Switch::Switch(
     int id,
     float x,
@@ -17,8 +16,6 @@ Component(id,x,y)
 
     state = false;
 
-
-    // Input pin
 
     addPin(
         Pin(
@@ -33,8 +30,6 @@ Component(id,x,y)
     );
 
 
-    // Output pin
-
     addPin(
         Pin(
             2,
@@ -48,7 +43,6 @@ Component(id,x,y)
     );
 
 }
-
 
 
 void Switch::draw()
@@ -66,12 +60,10 @@ void Switch::draw()
 }
 
 
-
 std::string Switch::getType() const
 {
     return "Switch";
 }
-
 
 
 std::unique_ptr<Component> Switch::clone(
@@ -88,14 +80,12 @@ std::unique_ptr<Component> Switch::clone(
 }
 
 
-
 std::vector<PropertyDescriptor> Switch::getProperties() const
 {
     auto properties = Component::getProperties();
     properties.push_back({"closed", "Closed", PropertyKind::Boolean, state ? "true" : "false", "", true, {}});
     return properties;
 }
-
 
 
 bool Switch::setProperty(
@@ -114,12 +104,10 @@ bool Switch::setProperty(
 }
 
 
-
 void Switch::toggle()
 {
     state = !state;
 }
-
 
 
 void Switch::turnOn()
@@ -128,12 +116,10 @@ void Switch::turnOn()
 }
 
 
-
 void Switch::turnOff()
 {
     state = false;
 }
-
 
 
 bool Switch::isOn()

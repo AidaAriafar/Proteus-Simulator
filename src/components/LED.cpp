@@ -5,7 +5,6 @@
 #include <iostream>
 
 
-
 LED::LED(
     int id,
     float x,
@@ -47,7 +46,6 @@ Component(id,x,y)
 }
 
 
-
 void LED::draw()
 {
 
@@ -65,12 +63,10 @@ void LED::draw()
 }
 
 
-
 std::string LED::getType() const
 {
     return "LED";
 }
-
 
 
 std::unique_ptr<Component> LED::clone(
@@ -88,7 +84,6 @@ std::unique_ptr<Component> LED::clone(
 }
 
 
-
 std::vector<PropertyDescriptor> LED::getProperties() const
 {
     auto properties = Component::getProperties();
@@ -96,7 +91,6 @@ std::vector<PropertyDescriptor> LED::getProperties() const
     properties.push_back({"state", "State", PropertyKind::Boolean, state ? "true" : "false", "", true, {}});
     return properties;
 }
-
 
 
 bool LED::setProperty(
@@ -126,12 +120,10 @@ bool LED::setProperty(
 }
 
 
-
 void LED::turnOn()
 {
     state=true;
 }
-
 
 
 void LED::turnOff()
@@ -140,19 +132,16 @@ void LED::turnOff()
 }
 
 
-
 bool LED::isOn()
 {
     return state;
 }
 
 
-
 std::string LED::getColor() const
 {
     return color;
 }
-
 
 
 void LED::setColor(

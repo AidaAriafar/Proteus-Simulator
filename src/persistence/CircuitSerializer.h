@@ -1,10 +1,6 @@
 #ifndef CIRCUIT_SERIALIZER_H
 #define CIRCUIT_SERIALIZER_H
 
-// Subproject 10: serialization of the ENTIRE canvas - components with
-// type, position, rotation, mirroring, label and editable properties,
-// plus junctions and wires - into a JSON text file. The same routines
-// power Save/Save As/Open and the snapshot based Undo/Redo system.
 
 #include "../editor/ComponentManager.h"
 #include "../library/ComponentLibrary.h"
@@ -15,7 +11,7 @@
 struct CanvasSettings
 {
     std::string pageSize = "A4";
-    float widthUnits = 1122.0f;  // A4 landscape @ ~96 dpi
+    float widthUnits = 1122.0f;
     float heightUnits = 793.0f;
 };
 
